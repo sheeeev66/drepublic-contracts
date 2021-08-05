@@ -21,14 +21,14 @@ contract("NFTBlindBox", (accounts) => {
 			"https://drepublic.io/api/nfts/{id}"
 		);
 		box = await NFTBlindBox.new(nft.address, usdt.address);
-		await box.setPrice(1, toBN(10), toBN(20), toBN(30));
+		await box.setPrices(1, toBN(10), toBN(20), toBN(30));
 	});
 
 	describe('1. premint NFTs only contract owner', () => {
 		it('batch create NFTs to NFTBlindBox ', async () => {
 			await nft.batchCreate(
 				[box.address],
-				[1],
+				[toBN(123456789123456789)],
 				[1],
 				["https://drepublic.io/api/nfts/{id}"],
 				"0x0"
@@ -36,21 +36,21 @@ contract("NFTBlindBox", (accounts) => {
 
 			const amount = await nft.balanceOf(
 				box.address,
-				1
+				toBN(123456789123456789)
 			);
-			assert.isOk(amount.eq(1));
+			assert.isOk(amount.eq(toBN(1)));
 		});
 
 		it('upload NFTs to NFTBlindBox market', async () => {
 			await box.uploadNfts(
 				1,
-				[1]
+				[toBN(123456789123456789)]
 			);
 
 			const nl = await box.getNFTLength(
 				1
 			);
-			assert.isOk(nl.eq(1));
+			assert.isOk(nl.eq(toBN(1)));
 		});
 	});
 
@@ -62,7 +62,7 @@ contract("NFTBlindBox", (accounts) => {
 			await usdt.approve(box.address, price, {from: userA});
 
 			const amount = await usdt.allowance(
-				owner,
+				userA,
 				box.address
 			);
 			assert.isOk(price.eq(amount));
@@ -81,9 +81,13 @@ contract("NFTBlindBox", (accounts) => {
 
 			const amount = await nft.balanceOf(
 				userA,
+				toBN(123456789123456789)
+			);
+			assert.isOk(amount.eq(toBN(1)));
+			const nl = await box.getNFTLength(
 				1
 			);
-			assert.isOk(amount.eq(1));
+			assert.isOk(nl.eq(toBN(0)));
 		});
 	});
 });

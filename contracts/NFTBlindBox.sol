@@ -67,11 +67,11 @@ contract NFTBlindBox is IERC777Recipient, Ownable, IERC1155Receiver {
         nft = _nft;
         usdt = _usdt;
         
-        _erc1820.setInterfaceImplementer(
-            address(this),
-            TOKENS_RECIPIENT_INTERFACE_HASH,
-            address(this)
-        );
+        //        _erc1820.setInterfaceImplementer(
+        //            address(this),
+        //            TOKENS_RECIPIENT_INTERFACE_HASH,
+        //            address(this)
+        //        );
     }
     
     function getNFTLength(uint256 stageNum) public view returns (uint256) {
@@ -197,7 +197,7 @@ contract NFTBlindBox is IERC777Recipient, Ownable, IERC1155Receiver {
         address token,
         uint256 amount,
         uint256 stageNum
-    ) external {
+    ) external returns (uint256 _tokenId) {
         uint256 count;
         if (token == drpc) {
             uint256 drpcPrice = stages[stageNum].drpcPrice;
@@ -216,11 +216,13 @@ contract NFTBlindBox is IERC777Recipient, Ownable, IERC1155Receiver {
         } else {
             revert("NFTBlindBox#openBox: pay token is not correct");
         }
+        require(
+            count == 1,
+            "NFTBlindBox#openBox: limit one purchase at a time"
+        );
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-        
-        for (uint256 i = 0; i < count; i++) {
-            _buy(stageNum, msg.sender);
-        }
+    
+        _tokenId = _buy(stageNum, msg.sender);
     }
     
     // erc777 receiveToken
