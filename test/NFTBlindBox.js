@@ -15,7 +15,7 @@ contract("NFTBlindBox", (accounts) => {
 	let box;
 
 	before(async () => {
-		usdt = await DRepublic.new("Tether USD", "USDT");
+		usdt = await DRepublic.new("Tether USD", "USDT", '100000000000000000000000');
 		nft = await NFTFactory.new(
 			"DRepublic NFT", "DRPC",
 			"https://drepublic.io/api/nfts/{id}"
