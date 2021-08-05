@@ -149,6 +149,22 @@ contract NFTFactory is ERC1155, Ownable {
         return _id;
     }
     
+    function batchCreate(
+        address[] calldata _initialOwners,
+        uint256[] calldata _ids,
+        uint256[] calldata _initialSupply,
+        string[] calldata _uris,
+        bytes calldata _data
+    ) external onlyOwner returns (uint256[] memory tokenIds) {
+        require(_initialOwners.length == _ids.length, "NFTFactory#batchCreate: id length mismatch");
+        require(_initialOwners.length == _initialSupply.length, "NFTFactory#batchCreate: initialSupply length mismatch");
+        require(_initialOwners.length == _uris.length, "NFTFactory#batchCreate: uri length mismatch");
+        tokenIds = new uint256[](_initialOwners.length);
+        for (uint i = 0; i < _initialOwners.length; i++) {
+            tokenIds[i] = create(_initialOwners[i], _ids[i], _initialSupply[i], _uris[i], _data);
+        }
+    }
+    
     /**
      * @notice Transfers amount amount of an _id from the _from address to the _to address specified
      * @param _from    Source address
