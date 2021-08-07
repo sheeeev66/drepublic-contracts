@@ -21,7 +21,7 @@ contract("NFTBlindBox", (accounts) => {
 			"https://drepublic.io/api/nfts/{id}"
 		);
 		box = await NFTBlindBox.new(nft.address, usdt.address);
-		await box.setPrices(1, toBN(10), toBN(20), toBN(30));
+		await box.setPrices(1, toBN(20), toBN(30));
 	});
 
 	describe('1. premint NFTs only contract owner', () => {
