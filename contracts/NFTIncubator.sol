@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/token/ERC1155/IERC1155.sol";
 
-contract Incubator is Ownable {
+contract NFTIncubator is Ownable {
     
     uint32 public incubatorCoolDown = uint32(15 minutes);
     
@@ -46,7 +46,7 @@ contract Incubator is Ownable {
     function createSharedIncubators(uint256[] calldata _ids) public onlyOwner {
         for (uint256 i = 0; i < _ids.length; i++) {
             require(incubators[_ids[i]].iType == IncubatorType.None,
-                "Incubator#createSharedIncubators: incubator already created");
+                "NFTIncubator#createSharedIncubators: incubator already created");
             IncubatorInfo storage incubator = incubators[_ids[i]];
             incubator.iType = IncubatorType.Shared;
         }
@@ -54,16 +54,16 @@ contract Incubator is Ownable {
     
     function store(uint256 _incubatorId, uint256 _tokenId) public {
         IncubatorInfo storage incubator = incubators[_incubatorId];
-        require(incubator.iType != IncubatorType.None, "Incubator#store, incubator not exist");
+        require(incubator.iType != IncubatorType.None, "NFTIncubator#store, incubator not exist");
         if (incubator.iType == IncubatorType.Private) {
-            require(_msgSender() == incubator.owner, "Incubator#store, not incubator owner");
+            require(_msgSender() == incubator.owner, "NFTIncubator#store, not incubator owner");
         } else {
-            require(incubator.coolDownEndTime <= block.timestamp, "Incubator#store, incubator cooldown period");
+            require(incubator.coolDownEndTime <= block.timestamp, "NFTIncubator#store, incubator cooldown period");
         }
         require(incubator.seats[0] == 0 || (incubator.seats[0] != 0 && incubator.matchWaitEndTime <= block.timestamp),
-            "Incubator#store, incubator already stored");
+            "NFTIncubator#store, incubator already stored");
         
-        require(IERC1155(nft).balanceOf(_msgSender(), _tokenId) > 0, "Incubator#store, not dragon owner");
+        require(IERC1155(nft).balanceOf(_msgSender(), _tokenId) > 0, "NFTIncubator#store, not dragon owner");
         incubator.matchWaitEndTime = block.timestamp + incubatorMatchWait;
         incubator.seats[0] = _tokenId;
         incubator.storer = _msgSender();
@@ -73,10 +73,10 @@ contract Incubator is Ownable {
     
     function breed(uint256 _incubatorId, uint256 _tokenId) public {
         IncubatorInfo storage incubator = incubators[_incubatorId];
-        require(incubator.iType != IncubatorType.None, "Incubator#breed, incubator not exist");
+        require(incubator.iType != IncubatorType.None, "NFTIncubator#breed, incubator not exist");
         uint256 firstToken = incubator.seats[0];
-        require(firstToken != 0 && incubator.seats[1] == 0, "Incubator#breed, incubator not yet stored");
-        require(IERC1155(nft).balanceOf(_msgSender(), _tokenId) > 0, "Incubator#breed, not dragon owner");
+        require(firstToken != 0 && incubator.seats[1] == 0, "NFTIncubator#breed, incubator not yet stored");
+        require(IERC1155(nft).balanceOf(_msgSender(), _tokenId) > 0, "NFTIncubator#breed, not dragon owner");
         // TODO 匹配属性 stageNum
         
         IERC1155(nft).safeTransferFrom(incubator.storer, blindBox, firstToken, 1, abi.encode(uint256(1)));

@@ -275,14 +275,15 @@ contract NFTBlindBox is IERC777Recipient, IERC1155Receiver, Ownable {
         bytes calldata _data
     ) override external returns (bytes4) {
         require(msg.sender == nft, "NFTBlindBox#onERC1155Received: only receive nft factory");
-        require(_operator == incubator, "NFTBlindBox#onERC1155Received: operator must be incubator");
-        
-        require(!nftOnSale[_id], "NFTBlindBox#onERC1155Received: nft already on sale");
-        uint256 stageNum = abi.decode(_data, (uint256));
-        nftIds[stageNum].push(_id);
-        nftOnSale[_id] = true;
-        _buy(stageNum + 1, msg.sender);
-        emit ReturnNFT(_from, _id);
+        // require(_operator == incubator, "NFTBlindBox#onERC1155Received: operator must be incubator");
+        if (_operator == incubator) {
+//            require(!nftOnSale[_id], "NFTBlindBox#onERC1155Received: nft already on sale");
+//            uint256 stageNum = abi.decode(_data, (uint256));
+//            nftIds[stageNum].push(_id);
+//            nftOnSale[_id] = true;
+//            _buy(stageNum + 1, _from);
+//            emit ReturnNFT(_from, _id);
+        }
         
         return ERC1155_RECEIVED_VALUE;
     }
@@ -294,17 +295,17 @@ contract NFTBlindBox is IERC777Recipient, IERC1155Receiver, Ownable {
         uint256[] calldata /*_amounts*/,
         bytes calldata _data
     ) override external returns (bytes4) {
-        require(msg.sender == nft, "NFTBlindBox#onERC1155BatchReceived: only receive nft factory");
-        require(_operator == incubator, "NFTBlindBox#onERC1155BatchReceived: operator must be incubator");
-        
-        uint256 stageNum = abi.decode(_data, (uint256));
-        for (uint256 i = 0; i < _ids.length; i++) {
-            require(!nftOnSale[_ids[i]], "NFTBlindBox#onERC1155BatchReceived: nft already on sale");
-            nftIds[stageNum].push(_ids[i]);
-            nftOnSale[_ids[i]] = true;
-            _buy(stageNum + 1, msg.sender);
+        require(msg.sender == nft, "NFTBlindBox#onERC1155Received: only receive nft factory");
+        if (_operator == incubator) {
+            uint256 stageNum = abi.decode(_data, (uint256));
+            for (uint256 i = 0; i < _ids.length; i++) {
+                require(!nftOnSale[_ids[i]], "NFTBlindBox#onERC1155BatchReceived: nft already on sale");
+                nftIds[stageNum].push(_ids[i]);
+                nftOnSale[_ids[i]] = true;
+                _buy(stageNum + 1, _from);
+            }
+            emit BatchReturnNFT(_from, _ids.length);
         }
-        emit BatchReturnNFT(_from, _ids.length);
         
         return ERC1155_BATCH_RECEIVED_VALUE;
     }
