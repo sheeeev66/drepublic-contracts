@@ -1,11 +1,14 @@
 const truffleAssert = require('truffle-assertions');
+const {expect} = require('chai');
 
 const DRepublic = artifacts.require("../contracts/DRepublic.sol");
 const NFTFactory = artifacts.require("../contracts/NFTFactory.sol");
-const NFTBlindBox = artifacts.require("../contracts/NFTBlindBox.sol");
+const NFTBlindBoxTest = artifacts.require("../contracts/NFTBlindBox.sol");
 const NFTIncubator = artifacts.require("../contracts/NFTIncubator.sol");
 
 const toBN = web3.utils.toBN;
+
+let baseUri = 'https://www.cradles.io/dragontar/';
 
 contract("NFTBlindBox", (accounts) => {
 	const owner = accounts[0];
@@ -30,28 +33,19 @@ contract("NFTBlindBox", (accounts) => {
 			"DRepublic NFT", "DRPC",
 			"https://drepublic.io/api/nfts/{id}"
 		);
-		box = await NFTBlindBox.new(nft.address, usdt.address);
+		box = await NFTBlindBoxTest.new(nft.address, usdt.address);
 		incubator = await NFTIncubator.new(nft.address, box.address);
 		await box.setPrices(1, toBN(10), toBN(20));
 		await box.setIncubator(incubator.address);
 		await incubator.createSharedIncubators([incubatorId]);
-		await nft.create(
-			userB,
-			nftB,
-			1,
-			"https://drepublic.io/api/nfts/{id}",
-			"0x0"
-		);
+		await nft.createNFT(userB, nftB);
 	});
 
 	describe('1. premint NFTs only contract owner', () => {
 		it('batch create NFTs to NFTBlindBox ', async () => {
-			await nft.batchCreate(
+			await nft.batchCreateNFT(
 				[box.address],
-				[nftA],
-				[1],
-				["https://drepublic.io/api/nfts/{id}"],
-				"0x0"
+				[nftA]
 			);
 
 			const amount = await nft.balanceOf(
@@ -111,12 +105,9 @@ contract("NFTBlindBox", (accounts) => {
 
 	describe('4. NFT breeding', () => {
 		it('mint lv2 nft', async () => {
-			await nft.batchCreate(
+			await nft.batchCreateNFT(
 				[box.address, box.address],
 				[1100, 1101],
-				[1, 1],
-				["", ""],
-				"0x0"
 			);
 			await box.uploadNFTs(
 				2,
@@ -148,11 +139,17 @@ contract("NFTBlindBox", (accounts) => {
 		});
 
 		it('NFT breed', async () => {
-			await incubator.breed(
-				incubatorId,
-				nftB,
-				{from: userB}
-			);
+			const receipt = await incubator.breed(incubatorId, nftB, {from: userB});
+			// truffleAssert.eventNotEmitted(
+			// 	receipt,
+			// 	'IncubatorBreed',
+			// 	{
+			// 		from: userB,
+			// 		incubatorId: incubatorId,
+			// 		first: 1000,
+			// 		second: 1001
+			// 	}
+			// );
 		});
 	});
 });

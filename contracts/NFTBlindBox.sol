@@ -53,7 +53,7 @@ contract NFTBlindBox is IERC777Recipient, IERC1155Receiver, Ownable {
     mapping(address => InviteInfo) public userInvited;
     mapping(uint256 => bool) public nftOnSale;
     
-    event BlindBoxBuy(
+    event LuckyDrawNFT(
         address indexed to,
         uint256 tokenId,
         uint256 value,
@@ -167,12 +167,12 @@ contract NFTBlindBox is IERC777Recipient, IERC1155Receiver, Ownable {
         );
     }
     
-    function _buy(uint256 stageNum, address _from)
+    function _luckyDraw(uint256 stageNum, address _from)
     internal
     returns (uint256 _tokenId)
     {
         uint256 length = nftIds[stageNum].length;
-        require(length > 0, "NFTBlindBox#_buy: Already sold out");
+        require(length > 0, "NFTBlindBox#_luckyDraw: Already sold out");
         uint256 _index = _seed(_from, length);
         _tokenId = nftIds[stageNum][_index];
         nftIds[stageNum][_index] = nftIds[stageNum][length - 1];
@@ -185,7 +185,7 @@ contract NFTBlindBox is IERC777Recipient, IERC1155Receiver, Ownable {
             1,
             ""
         );
-        emit BlindBoxBuy(_from, _tokenId, 1, stageNum);
+        emit LuckyDrawNFT(_from, _tokenId, 1, stageNum);
     }
     
     function _invite(address from, address _inviter)
@@ -231,7 +231,7 @@ contract NFTBlindBox is IERC777Recipient, IERC1155Receiver, Ownable {
         );
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
         
-        _tokenId = _buy(stageNum, msg.sender);
+        _tokenId = _luckyDraw(stageNum, msg.sender);
     }
     
     // erc777 receiveToken
@@ -263,7 +263,7 @@ contract NFTBlindBox is IERC777Recipient, IERC1155Receiver, Ownable {
             revert("NFTBlindBox#tokensReceived: pay token is not correct");
         }
         for (uint256 i = 0; i < count; i++) {
-            _buy(stageNum, from);
+            _luckyDraw(stageNum, from);
         }
     }
     
@@ -275,14 +275,13 @@ contract NFTBlindBox is IERC777Recipient, IERC1155Receiver, Ownable {
         bytes calldata _data
     ) override external returns (bytes4) {
         require(msg.sender == nft, "NFTBlindBox#onERC1155Received: only receive nft factory");
-        // require(_operator == incubator, "NFTBlindBox#onERC1155Received: operator must be incubator");
         if (_operator == incubator) {
-//            require(!nftOnSale[_id], "NFTBlindBox#onERC1155Received: nft already on sale");
-//            uint256 stageNum = abi.decode(_data, (uint256));
-//            nftIds[stageNum].push(_id);
-//            nftOnSale[_id] = true;
-//            _buy(stageNum + 1, _from);
-//            emit ReturnNFT(_from, _id);
+            require(!nftOnSale[_id], "NFTBlindBox#onERC1155Received: nft already on sale");
+            uint256 stageNum = abi.decode(_data, (uint256));
+            nftIds[stageNum].push(_id);
+            nftOnSale[_id] = true;
+            _luckyDraw(stageNum + 1, _from);
+            emit ReturnNFT(_from, _id);
         }
         
         return ERC1155_RECEIVED_VALUE;
@@ -302,7 +301,7 @@ contract NFTBlindBox is IERC777Recipient, IERC1155Receiver, Ownable {
                 require(!nftOnSale[_ids[i]], "NFTBlindBox#onERC1155BatchReceived: nft already on sale");
                 nftIds[stageNum].push(_ids[i]);
                 nftOnSale[_ids[i]] = true;
-                _buy(stageNum + 1, _from);
+                _luckyDraw(stageNum + 1, _from);
             }
             emit BatchReturnNFT(_from, _ids.length);
         }
