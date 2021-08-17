@@ -15,7 +15,7 @@ interface IGenericAttribute {
 
     function create(uint256 _id, string memory _name, string memory _description, uint8 _decimals) external;
 
-    function attach(uint256 _nftId, uint256 _attrId,  uint256 amount) external;
+    function attach(uint256 _nftId, uint256 _attrId, uint256 amount) external;
 
     function remove(uint256 _nftId, uint256 _attrId) external;
 

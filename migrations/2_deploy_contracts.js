@@ -1,3 +1,5 @@
+const Arrays = artifacts.require("../contracts/utils/Arrays.sol");
+const GenericAttribute = artifacts.require("../contracts/EIP3664/GenericAttribute.sol");
 const DRepublic = artifacts.require("../contracts/DRepublic.sol");
 const NFTFactory = artifacts.require("../contracts/NFTFactory.sol");
 const NFTBlindBox = artifacts.require("../contracts/NFTBlindBox.sol");
@@ -8,4 +10,6 @@ module.exports = async (deployer) => {
 	await deployer.deploy(NFTFactory, "DRepublic NFT", "DRPC", "https://www.cradles.io/dragontar/");
 	await deployer.deploy(NFTBlindBox, NFTFactory.address, DRepublic.address);
 	await deployer.deploy(NFTIncubator, NFTFactory.address, NFTBlindBox.address);
+	await deployer.deploy(Arrays);
+	await deployer.link(Arrays, GenericAttribute);
 };

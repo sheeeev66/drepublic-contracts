@@ -46,7 +46,7 @@ contract EvolutiveAttribute is IEvolutiveAttribute, Context, Ownable, Operatable
         _;
     }
 
-    constructor (address nftAddress_) AttributeClass(4){
+    constructor (address nftAddress_) AttributeClass(AttrClass.Evolutive){
         _nftAddress = nftAddress_;
     }
 

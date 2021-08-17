@@ -28,7 +28,7 @@ contract GenericAttribute is Context, Ownable, Operatable, IGenericAttribute, At
     // nft ID => attributes
     mapping(uint256 => uint256[]) public nftAttrs;
 
-    constructor () AttributeClass(1){}
+    constructor () AttributeClass(AttrClass.Generic){}
 
     function name(uint256 _attrId) public view virtual override returns (string memory) {
         return attrs[_attrId].name;

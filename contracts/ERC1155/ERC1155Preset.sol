@@ -21,7 +21,7 @@ contract ERC1155Preset is ERC1155, Ownable {
     
     mapping(uint256 => address) public creators;
     mapping(uint256 => uint256) public tokenSupply;
-    mapping(uint256 => string) customUri;
+    mapping(uint256 => string) private customUri;
     
     // Contract name
     string public name;

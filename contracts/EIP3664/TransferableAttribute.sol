@@ -42,7 +42,7 @@ contract TransferableAttribute is ITransferableAttribute, Context, Ownable, Oper
         _;
     }
 
-    constructor (address nftAddress_) AttributeClass(3){
+    constructor (address nftAddress_) AttributeClass(AttrClass.Transferable){
         _nftAddress = nftAddress_;
     }
 
