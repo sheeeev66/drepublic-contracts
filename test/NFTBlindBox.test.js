@@ -56,7 +56,7 @@ contract("NFTBlindBox", (accounts) => {
 
         GenericAttribute.link(Arrays);
         genericAttr = await GenericAttribute.new();
-        await nft.setTokenAttribute(1, genericAttr.address);
+        await nft.registerAttribute(1, genericAttr.address);
 
         await genericAttr.changeOperator(nft.address);
         await genericAttr.create(
@@ -73,7 +73,7 @@ contract("NFTBlindBox", (accounts) => {
             18
         );
 
-        await nft.createNFT(userB, nftMetadata, [bg, skin], [1, 2]);
+        await nft.createNFT(userB, nftMetadata);
         // first nft
         console.log("uri: ", await nft.uri(0));
         const amount = await nft.balanceOf(
@@ -87,9 +87,7 @@ contract("NFTBlindBox", (accounts) => {
         it('batch create NFTs to NFTBlindBox ', async () => {
             await nft.batchCreateNFT(
                 [box.address],
-                [nftMetadata],
-                [[bg, skin], [bg, skin]],
-                [[1, 2], [1, 2]]
+                [nftMetadata]
             );
             console.log("uri: ", await nft.uri(1));
 
@@ -99,10 +97,10 @@ contract("NFTBlindBox", (accounts) => {
             );
             assert.isOk(amount.eq(toBN(1)));
 
-            assert.equal(
-                await genericAttr.attributeValue(1, bg),
-                1
-            );
+            // assert.equal(
+            //     await genericAttr.attributeValue(1, bg),
+            //     1
+            // );
         });
 
         it('upload NFTs to NFTBlindBox market', async () => {
@@ -157,9 +155,7 @@ contract("NFTBlindBox", (accounts) => {
         it('mint lv2 nft', async () => {
             await nft.batchCreateNFT(
                 [box.address, box.address],
-                [1100, 1101],
-                [[bg, skin], [bg, skin]],
-                [[1, 2], [1, 2]]
+                [1100, 1101]
             );
             await box.uploadNFTs(
                 2,
