@@ -5,7 +5,6 @@ pragma solidity ^0.8.0;
 import "./ERC1155/ERC1155Preset.sol";
 import "./EIP3664/IGenericAttribute.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/utils/introspection/IERC1820Registry.sol";
 
 /**
  * @title NFTFactory
@@ -20,12 +19,7 @@ contract NFTFactory is ERC1155Preset {
     mapping(uint256 => string) public fullIds;
     mapping(address => uint256[]) private holderTokens;
     mapping(uint256 => address) private tokenOwners;
-
-    // attribute contracts
-    address genericAttr;
-    address upgradableAttr;
-    address transferableAttr;
-    address evolutiveAttr;
+    mapping(uint16 => address) public tokenAttributes;
 
     constructor(
         string memory _name,
@@ -34,10 +28,8 @@ contract NFTFactory is ERC1155Preset {
     ) ERC1155Preset(_name, _symbol, _uri) {
     }
 
-    function setGenericAttr(
-        address _genericAttr
-    ) public onlyOwner {
-        genericAttr = _genericAttr;
+    function setTokenAttribute(uint16 _class, address _attr) public onlyOwner {
+        tokenAttributes[_class] = _attr;
     }
 
     function getNextTokenID() public view returns (uint256) {
@@ -50,10 +42,13 @@ contract NFTFactory is ERC1155Preset {
         uint256[] calldata _attributes,
         uint256[] calldata _values
     ) public onlyOwner returns (uint256 tokenId) {
-        require(_attributes.length == _values.length, "NFTFactory#batchCreate: id length mismatch");
+        // create nft only support generic attribute class.
+        uint16 genericClass = 1;
+        require(_validAttrClass(genericClass), "NFTFactory#createNFT: invalid attribute class");
+        require(_attributes.length == _values.length, "NFTFactory#createNFT: id length mismatch");
         uint256 _id = _currentNFTID++;
         for (uint i = 0; i < _attributes.length; i++) {
-            IGenericAttribute(genericAttr).attach(_id, _attributes[i], _values[i]);
+            IGenericAttribute(tokenAttributes[genericClass]).attach(_id, _attributes[i], _values[i]);
         }
         fullIds[_id] = _fullId;
         tokenId = create(_initialOwner, _id, 1, "", "");
@@ -70,6 +65,12 @@ contract NFTFactory is ERC1155Preset {
         for (uint i = 0; i < _initialOwners.length; i++) {
             createNFT(_initialOwners[i], _fullIds[i], _attributes[i], _values[i]);
         }
+    }
+
+    function _validAttrClass(
+        uint16 _id
+    ) internal view returns (bool) {
+        return tokenAttributes[_id] != address(0);
     }
 
 }

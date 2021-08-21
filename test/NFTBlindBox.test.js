@@ -56,7 +56,7 @@ contract("NFTBlindBox", (accounts) => {
 
         GenericAttribute.link(Arrays);
         genericAttr = await GenericAttribute.new();
-        await nft.setGenericAttr(genericAttr.address);
+        await nft.setTokenAttribute(1, genericAttr.address);
 
         await genericAttr.changeOperator(nft.address);
         await genericAttr.create(

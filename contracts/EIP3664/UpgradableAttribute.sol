@@ -33,7 +33,7 @@ contract UpgradableAttribute is IUpgradableAttribute, Context, Ownable, Operatab
     // nft ID => attributes
     mapping(uint256 => uint256[]) public nftAttrs;
 
-    constructor () AttributeClass(AttrClass.Upgradable){}
+    constructor () AttributeClass(2){}
 
     function name(uint256 _attrId) public view virtual override returns (string memory) {
         return attrs[_attrId].name;
