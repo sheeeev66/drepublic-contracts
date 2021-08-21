@@ -20,7 +20,8 @@
 
 const HDWalletProvider = require('truffle-hdwallet-provider');
 
-const mnemonic = "citizen hint animal brain label grab hurt prison myth stem load wait";
+const fs = require('fs');
+const mnemonic = fs.readFileSync(".secret").toString().trim();
 
 module.exports = {
 	/**
@@ -40,6 +41,13 @@ module.exports = {
 		// tab if you use this network and you must also set the `host`, `port` and `network_id`
 		// options below to some value.
 
+		binancelive: {
+			provider: () => new HDWalletProvider(mnemonic,
+				'https://bsc-dataseed1.binance.org/'
+			),
+			network_id: '56',
+			gas: 5500000
+		},
 		binancetest: {
 			provider: () => new HDWalletProvider(mnemonic,
 				'https://data-seed-prebsc-1-s1.binance.org:8545/'
@@ -49,14 +57,6 @@ module.exports = {
 			// ),
 			network_id: '97',
 			gas: 5500000
-		},
-		findora: {
-			provider: () => new HDWalletProvider(mnemonic,
-				'https://dev-evm.dev.findora.org:8545'
-			),
-			network_id: '523',
-			gas: 5500000,
-			gasPrice: 1000000000000, // 1000 gwei
 		},
 		//
 		// development: {
@@ -93,7 +93,11 @@ module.exports = {
 
 	// Set default mocha options here, use special reporters etc.
 	mocha: {
-		// timeout: 100000
+		reporter: "eth-gas-reporter",
+		reporterOptions: {
+			currency: "USD",
+			gasPrice: 2,
+		},
 	},
 
 	// Configure your compilers
