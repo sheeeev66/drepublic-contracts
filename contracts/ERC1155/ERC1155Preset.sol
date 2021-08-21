@@ -8,26 +8,27 @@ import "openzeppelin-solidity/contracts/utils/Address.sol";
 import "openzeppelin-solidity/contracts/utils/Strings.sol";
 import "openzeppelin-solidity/contracts/token/ERC1155/ERC1155.sol";
 import "openzeppelin-solidity/contracts/token/ERC1155/IERC1155Receiver.sol";
+import "openzeppelin-solidity/contracts/token/ERC1155/extensions/ERC1155Pausable.sol";
 
 /**
  * @title ERC1155Preset
  * ERC1155Preset - ERC1155 contract has create and mint functionality, and supports useful standards from OpenZeppelin,
   like _exists(), name(), symbol(), and totalSupply()
  */
-contract ERC1155Preset is ERC1155, Ownable {
+contract ERC1155Preset is ERC1155Pausable, Ownable {
     using Address for address;
     using Strings for uint256;
     using SafeMath for uint256;
-    
+
     mapping(uint256 => address) public creators;
     mapping(uint256 => uint256) public tokenSupply;
     mapping(uint256 => string) private customUri;
-    
+
     // Contract name
     string public name;
     // Contract symbol
     string public symbol;
-    
+
     /**
      * @dev Require _msgSender() to be the creator of the token id
      */
@@ -35,7 +36,7 @@ contract ERC1155Preset is ERC1155, Ownable {
         require(creators[_id] == _msgSender(), "ERC1155Preset#creatorOnly: ONLY_CREATOR_ALLOWED");
         _;
     }
-    
+
     /**
      * @dev Require _msgSender() to own more than 0 of the token id
      */
@@ -43,7 +44,7 @@ contract ERC1155Preset is ERC1155, Ownable {
         require(balanceOf(_msgSender(), _id) > 0, "ERC1155Preset#ownersOnly: ONLY_OWNERS_ALLOWED");
         _;
     }
-    
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -52,7 +53,7 @@ contract ERC1155Preset is ERC1155, Ownable {
         name = _name;
         symbol = _symbol;
     }
-    
+
     function uri(
         uint256 _id
     ) override public view returns (string memory) {
@@ -65,7 +66,7 @@ contract ERC1155Preset is ERC1155, Ownable {
             return string(abi.encodePacked(super.uri(_id), _id.toString()));
         }
     }
-    
+
     /**
       * @dev Returns the total quantity for a token ID
       * @param _id uint256 ID of the token to query
@@ -76,7 +77,7 @@ contract ERC1155Preset is ERC1155, Ownable {
     ) public view returns (uint256) {
         return tokenSupply[_id];
     }
-    
+
     /**
      * @dev Sets a new URI for all token types, by relying on the token type ID
       * substitution mechanism
@@ -88,7 +89,7 @@ contract ERC1155Preset is ERC1155, Ownable {
     ) public onlyOwner {
         _setURI(_newURI);
     }
-    
+
     /**
      * @dev Will update the base URI for the token
      * @param _tokenId The token to update. _msgSender() must be its creator.
@@ -101,11 +102,11 @@ contract ERC1155Preset is ERC1155, Ownable {
         customUri[_tokenId] = _newURI;
         emit URI(_newURI, _tokenId);
     }
-    
+
     function creatorOf(uint256 _id) public view returns (address) {
         return creators[_id];
     }
-    
+
     /**
       * @dev Creates a new token type and assigns _initialSupply to an address
       * NOTE: remove onlyOwner if you want third parties to create new tokens on
@@ -133,18 +134,18 @@ contract ERC1155Preset is ERC1155, Ownable {
     ) public onlyOwner returns (uint256) {
         require(!_exists(_id), "ERC1155Preset#create: token _id already exists");
         creators[_id] = _msgSender();
-        
+
         if (bytes(_uri).length > 0) {
             customUri[_id] = _uri;
             emit URI(_uri, _id);
         }
-        
+
         _mint(_initialOwner, _id, _initialSupply, _data);
-        
+
         tokenSupply[_id] = _initialSupply;
         return _id;
     }
-    
+
     /**
       * @dev Mints some amount of tokens to an address
       * @param _to          Address of the future owner of the token
@@ -161,7 +162,7 @@ contract ERC1155Preset is ERC1155, Ownable {
         _mint(_to, _id, _quantity, _data);
         tokenSupply[_id] = tokenSupply[_id].add(_quantity);
     }
-    
+
     /**
       * @dev Mint tokens for each id in _ids
       * @param _to          The address to mint tokens to
@@ -183,7 +184,7 @@ contract ERC1155Preset is ERC1155, Ownable {
         }
         _mintBatch(_to, _ids, _quantities, _data);
     }
-    
+
     /**
      * @notice Burn _quantity of tokens of a given id from msg.sender
      * @dev This will not change the current issuance tracked in _supplyManagerAddr.
@@ -198,7 +199,7 @@ contract ERC1155Preset is ERC1155, Ownable {
         _burn(_msgSender(), _id, _quantity);
         tokenSupply[_id] = tokenSupply[_id].sub(_quantity);
     }
-    
+
     /**
      * @notice Burn _quantities of tokens of given ids from msg.sender
      * @dev This will not change the current issuance tracked in _supplyManagerAddr.
@@ -218,7 +219,33 @@ contract ERC1155Preset is ERC1155, Ownable {
         }
         _burnBatch(msg.sender, _ids, _quantities);
     }
-    
+
+    /**
+      * @dev Pauses all token transfers.
+      *
+      * See {ERC1155Pausable} and {Pausable-_pause}.
+      *
+      * Requirements:
+      *
+      * - the caller must contract owner.
+      */
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    /**
+     * @dev Unpauses all token transfers.
+     *
+     * See {ERC1155Pausable} and {Pausable-_unpause}.
+     *
+     * Requirements:
+     *
+     * - the caller must contract owner.
+     */
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
     /**
       * @dev Change the creator address for given tokens
       * @param _to   Address of the new creator
@@ -234,7 +261,20 @@ contract ERC1155Preset is ERC1155, Ownable {
             _setCreator(_to, id);
         }
     }
-    
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC1155)
+    returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+
     /**
       * @dev Change the creator address for given token
       * @param _to   Address of the new creator
@@ -244,7 +284,7 @@ contract ERC1155Preset is ERC1155, Ownable {
     {
         creators[_id] = _to;
     }
-    
+
     /**
       * @dev Returns whether the specified token exists by checking to see if it has a creator
       * @param _id uint256 ID of the token to query the existence of
@@ -255,7 +295,7 @@ contract ERC1155Preset is ERC1155, Ownable {
     ) internal view returns (bool) {
         return creators[_id] != address(0);
     }
-    
+
     function exists(
         uint256 _id
     ) external view returns (bool) {

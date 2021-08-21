@@ -2,9 +2,11 @@
 
 pragma solidity ^0.8.0;
 
+import "./utils/Arrays.sol";
 import "./ERC1155/ERC1155Preset.sol";
 import "./ERC3664/IGenericAttribute.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/token/ERC1155/extensions/ERC1155Pausable.sol";
 
 /**
  * @title NFTFactory
@@ -12,6 +14,7 @@ import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
   like _exists(), name(), symbol(), and totalSupply()
  */
 contract NFTFactory is ERC1155Preset {
+    using Arrays for uint256[];
     using SafeMath for uint256;
 
     uint256 private _currentNFTId = 0;
@@ -58,6 +61,27 @@ contract NFTFactory is ERC1155Preset {
         tokenIds = new uint256[](_initialOwners.length);
         for (uint i = 0; i < _initialOwners.length; i++) {
             createNFT(_initialOwners[i], _metadatas[i]);
+        }
+    }
+
+    function _beforeTokenTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) internal virtual override(ERC1155Pausable) {
+        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+
+        for (uint i = 0; i < ids.length; i++) {
+            tokenOwners[ids[i]] = to;
+            if (from != address(0)) {
+                holderTokens[from].removeByValue(ids[i]);
+            }
+            if (to != address(0)) {
+                holderTokens[to].push(ids[i]);
+            }
         }
     }
 

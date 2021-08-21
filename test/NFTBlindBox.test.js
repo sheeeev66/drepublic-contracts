@@ -44,6 +44,7 @@ contract("NFTBlindBox", (accounts) => {
         await usdt.transfer(userA, toBN(100));
         await usdt.transfer(userB, toBN(100));
 
+        NFTFactory.link(Arrays);
         nft = await NFTFactory.new(
             "DRepublic NFT", "DRPC",
             baseUri
