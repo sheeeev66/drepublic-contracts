@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "./ERC1155/ERC1155Preset.sol";
-import "./EIP3664/IGenericAttribute.sol";
+import "./ERC3664/IGenericAttribute.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 
 /**

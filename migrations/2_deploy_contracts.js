@@ -1,5 +1,5 @@
 const Arrays = artifacts.require("../contracts/utils/Arrays.sol");
-const GenericAttribute = artifacts.require("../contracts/EIP3664/GenericAttribute.sol");
+const GenericAttribute = artifacts.require("../contracts/ERC3664/GenericAttribute.sol");
 const DRepublic = artifacts.require("../contracts/DRepublic.sol");
 const NFTFactory = artifacts.require("../contracts/NFTFactory.sol");
 const NFTBlindBox = artifacts.require("../contracts/NFTBlindBox.sol");
