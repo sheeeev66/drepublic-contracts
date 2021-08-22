@@ -22,7 +22,7 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
 
     mapping(uint256 => address) public creators;
     mapping(uint256 => uint256) public tokenSupply;
-    mapping(uint256 => string) private customUri;
+    mapping(uint256 => string) public customUri;
 
     // Contract name
     string public name;
@@ -52,19 +52,6 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
     ) ERC1155(_uri) {
         name = _name;
         symbol = _symbol;
-    }
-
-    function uri(
-        uint256 _id
-    ) override public view returns (string memory) {
-        require(_exists(_id), "ERC1155Preset#uri: nonexistent token");
-        // We have to convert string to bytes to check for existence
-        bytes memory customUriBytes = bytes(customUri[_id]);
-        if (customUriBytes.length > 0) {
-            return customUri[_id];
-        } else {
-            return string(abi.encodePacked(super.uri(_id), _id.toString()));
-        }
     }
 
     /**

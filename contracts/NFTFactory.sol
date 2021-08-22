@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-import "./utils/Arrays.sol";
 import "./ERC1155/ERC1155Preset.sol";
 import "./ERC3664/IERC3664.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
@@ -14,14 +13,13 @@ import "openzeppelin-solidity/contracts/token/ERC1155/extensions/ERC1155Pausable
   like _exists(), name(), symbol(), and totalSupply()
  */
 contract NFTFactory is ERC1155Preset {
-    using Arrays for uint256[];
     using SafeMath for uint256;
 
     uint256 private _currentNFTId = 0;
 
     mapping(uint256 => string) public tokenMetadatas;
+    mapping(address => uint256[]) private _holderTokens;
     mapping(uint256 => address) public tokenOwners;
-    mapping(address => uint256[]) public holderTokens;
     mapping(uint16 => address) public attributes;
 
     constructor(
@@ -39,28 +37,57 @@ contract NFTFactory is ERC1155Preset {
         return _currentNFTId.add(1);
     }
 
+    function getHolderTokens(address holder) public view returns (uint256[] memory) {
+        return _holderTokens[holder];
+    }
+
+    function uri(
+        uint256 _id
+    ) override public view returns (string memory) {
+        require(_exists(_id), "NFTFactory#uri: nonexistent token");
+        // We have to convert string to bytes to check for existence
+        bytes memory customUriBytes = bytes(customUri[_id]);
+        if (customUriBytes.length > 0) {
+            return customUri[_id];
+        } else {
+            return string(abi.encodePacked(super.uri(_id), tokenMetadatas[_id]));
+        }
+    }
+
     function createNFT(
         address _initialOwner,
-        string memory _metadata
+        string memory _metadata,
+        uint256[] calldata _attributes,
+        uint256[] calldata _values
     ) public onlyOwner returns (uint256 tokenId) {
+        require(_attributes.length == _values.length, "NFTFactory#createNFT: attributes and values length mismatch");
+        // create nft only attach generic attribute.
+        uint16 attrType = 2;
+        require(attributes[attrType] != address(0), "NFTFactory#createNFT: invalid attribute type");
+
         uint256 _id = _currentNFTId++;
         tokenMetadatas[_id] = _metadata;
 
-        // create nft only support generic attribute class.
-        uint16 genericClass = 1;
-        _decodeMetadata(_id, _metadata, genericClass);
+        IERC3664(attributes[attrType]).batchAttach(_id, _attributes, _values);
 
         tokenId = create(_initialOwner, _id, 1, "", "");
     }
 
     function batchCreateNFT(
         address[] calldata _initialOwners,
-        string[] calldata _metadatas
+        string[] calldata _metadatas,
+        uint256[] calldata _attributes,
+        uint256[][] calldata _values
     ) external onlyOwner returns (uint256[] memory tokenIds) {
-        require(_initialOwners.length == _metadatas.length, "NFTFactory#batchCreate: id length mismatch");
+        require(_initialOwners.length == _metadatas.length,
+            "NFTFactory#batchCreateNFT: initialOwners and metadatas length mismatch");
+        require(_initialOwners.length == _values.length,
+            "NFTFactory#batchCreateNFT: initialOwners and values length mismatch");
+        require(attributes[2] != address(0), "NFTFactory#createNFT: invalid attribute type");
+
         tokenIds = new uint256[](_initialOwners.length);
         for (uint i = 0; i < _initialOwners.length; i++) {
-            createNFT(_initialOwners[i], _metadatas[i]);
+            createNFT(_initialOwners[i], _metadatas[i], _attributes, _values[i]);
         }
     }
 
@@ -77,28 +104,19 @@ contract NFTFactory is ERC1155Preset {
         for (uint i = 0; i < ids.length; i++) {
             tokenOwners[ids[i]] = to;
             if (from != address(0)) {
-                holderTokens[from].removeByValue(ids[i]);
+                _removeByValue(_holderTokens[from], ids[i]);
             }
             if (to != address(0)) {
-                holderTokens[to].push(ids[i]);
+                _holderTokens[to].push(ids[i]);
             }
         }
     }
 
-    function _decodeMetadata(uint256 _id, string memory _metadata, uint16 _class) internal {
-        require(_validAttrClass(_class), "NFTFactory#_decodeMetadata: invalid attribute class");
-        // TODO
-        uint256[] memory _attributes;
-        uint256[] memory _values;
-        for (uint i = 0; i < _attributes.length; i++) {
-            IERC3664(attributes[_class]).attach(_id, _attributes[i], _values[i]);
+    function _removeByValue(uint256[] storage values, uint value) internal {
+        uint i = 0;
+        while (values[i] != value) {
+            i++;
         }
+        delete values[i];
     }
-
-    function _validAttrClass(
-        uint16 _id
-    ) internal view returns (bool) {
-        return attributes[_id] != address(0);
-    }
-
 }
