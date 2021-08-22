@@ -2,6 +2,9 @@ const HDWalletProvider = require('truffle-hdwallet-provider');
 const fs = require('fs');
 const Web3 = require('web3');
 const NFTFactoryABI = require('../build/contracts/NFTFactory.json');
+// async
+// const parse = require('csv-parse');
+const parse = require('csv-parse/lib/sync');
 
 const mnemonic = fs.readFileSync(".secret").toString().trim();
 const bscLiveNetwork = "https://bsc-dataseed1.binance.org/";
@@ -17,8 +20,21 @@ async function main() {
     const nftFactoryInstance = new web3.eth.Contract(
         NFTFactoryABI.abi,
         nftFactoryAddress,
-        {gasLimit: "5500000"}
+        {gasLimit: "20000000"}
     );
+
+    const dragontarContent = await fs.promises.readFile(__dirname + '/airdrop_dragontar_1.csv');
+    const dragontars = parse(dragontarContent, {columns: true});
+    console.log(dragontars)
+    const recipientsContent = await fs.promises.readFile(__dirname + '/airdrop_whitelist.csv');
+    const recipients = parse(recipientsContent, {columns: true});
+    console.log(recipients)
+
+    if (dragontars.length !== recipients.length) {
+        console.log(dragontars.length, recipients.length);
+        console.log("dragontars and recipients lenght not match!");
+        return;
+    }
 
     // attributes
     const bg = 1;
@@ -31,19 +47,41 @@ async function main() {
     const decorates = 8;
     const hat = 9;
     const rare = 10;
-    
-    const result1 = await nftFactoryInstance.methods
-        .createNFT("0x0A559eD20fD86DC38A7aF82E7EdE91aE9b43b5f5",
-            "007005000000007001003000010",
-            [bg, body, dress, neck, eyes, tooth, mouth, decorates, hat, rare],
-            [7, 5, 0, 0, 7, 1, 3, 0, 10, 10]
-        ).send({from: caller});
-    console.log("result: " + result1);
+    let attributes = [bg, body, dress, neck, eyes, tooth, mouth, decorates, hat, rare];
 
-    // const result2 = await nftFactoryInstance.methods
-    //     .batchCreateNFT(["0x0A559eD20fD86DC38A7aF82E7EdE91aE9b43b5f5", "0x6e1F35c11eACcc4D81B67c50827c3674593C8D23"],
-    //         ["0011100001111000001111", "110001000100010001"]).send();
-    // console.log("result: " + result);
+    let owners = [];
+    let metadatas = [];
+    let values = [];
+    let i = 0;
+    for (i; i < dragontars.length; i++) {
+        metadatas.push(dragontars[i].full_ID);
+        values.push([parseInt(dragontars[i].bg), parseInt(dragontars[i].body), parseInt(dragontars[i].dress),
+            parseInt(dragontars[i].neck), parseInt(dragontars[i].eyes), parseInt(dragontars[i].tooth),
+            parseInt(dragontars[i].mouth), parseInt(dragontars[i].decorates), parseInt(dragontars[i].hat),
+            parseInt(dragontars[i].rare)]);
+        owners.push(recipients[i].recipient);
+    }
+
+    const ret = await nftFactoryInstance.methods
+        .batchCreateNFT(owners, metadatas, attributes, values).send({from: caller});
+    console.log("batchCreateNFT result: " + ret);
+
+    // var parser = parse({columns: true}, function (err, records) {
+    //     console.log(records);
+    // });
+    // fs.createReadStream(__dirname + '/airdrop_dragontar_1.csv').pipe(parser);
+
+    // const user = "0x0888636179cB1783Ac2aaCE032521cc1129eB8f4";
+    //
+    // await nftFactoryInstance.methods
+    //     .createNFT(user,
+    //         "007005000000007001003000010",
+    //         [bg, body, dress, neck, eyes, tooth, mouth, decorates, hat, rare],
+    //         [7, 5, 0, 0, 7, 1, 3, 0, 10, 10]
+    //     ).send({from: caller});
+    //
+    // console.log("nft factory getHolderTokens: ", await nftFactoryInstance.methods.getHolderTokens(user, 10, 0).call());
+
 }
 
 main();
