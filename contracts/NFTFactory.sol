@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./utils/Arrays.sol";
 import "./ERC1155/ERC1155Preset.sol";
-import "./ERC3664/IGenericAttribute.sol";
+import "./ERC3664/IERC3664.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/token/ERC1155/extensions/ERC1155Pausable.sol";
 
@@ -91,7 +91,7 @@ contract NFTFactory is ERC1155Preset {
         uint256[] memory _attributes;
         uint256[] memory _values;
         for (uint i = 0; i < _attributes.length; i++) {
-            IGenericAttribute(attributes[_class]).attach(_id, _attributes[i], _values[i]);
+            IERC3664(attributes[_class]).attach(_id, _attributes[i], _values[i]);
         }
     }
 
