@@ -201,6 +201,8 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
         address operator = _msgSender();
 
         for (uint256 i = 0; i < attrIds.length; i++) {
+            require(!_exists(attrIds[i]), "ERC3664: attribute already exists");
+
             AttrMetadata memory data = AttrMetadata(names[i], symbols[i], uris[i], true);
             _attrMetadatas[attrIds[i]] = data;
         }

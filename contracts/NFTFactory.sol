@@ -37,8 +37,23 @@ contract NFTFactory is ERC1155Preset {
         return _currentNFTId.add(1);
     }
 
-    function getHolderTokens(address holder) public view returns (uint256[] memory) {
-        return _holderTokens[holder];
+    function getHolderTokens(address holder, uint size, uint page) public view returns (uint256[] memory) {
+        uint256 beginIdx = size * page;
+        uint256 rest = _holderTokens[holder].length - beginIdx;
+        uint256 quantity = rest > size ? size : rest;
+        uint256[] memory tokens = new uint256[](quantity);
+        if (quantity > 0) {
+            uint256 i = 0;
+            while (i < quantity) {
+                tokens[i] = _holderTokens[holder][beginIdx + i];
+                i++;
+            }
+        }
+        return tokens;
+    }
+
+    function holderTokensCount(address holder) public view returns (uint256) {
+        return _holderTokens[holder].length;
     }
 
     function uri(

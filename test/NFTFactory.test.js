@@ -69,7 +69,7 @@ contract("NFTFactory", (accounts) => {
             let val = await genericAttr.balanceOf(0, bg);
             assert.isOk(val.eq(toBN(100)));
 
-            let ownedNfts = await nft.getHolderTokens(userA);
+            let ownedNfts = await nft.getHolderTokens(userA, 10, 0);
             console.log("owner nfts: ", ownedNfts);
         });
     });
