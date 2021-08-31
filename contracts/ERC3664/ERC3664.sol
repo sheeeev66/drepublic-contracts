@@ -20,17 +20,18 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
     }
 
     // 1 => SubNFT
-    // 2 => Generic
-    // 3 => Upgradable
-    // 4 => Transferable
-    // 5 => Evolutive
+    // 2 => Generic(stable)
+    // 3 => Updatable
+    // 4 => Upgradable
+    // 5 => Transferable
+    // 6 => Evolutive
     // others
     uint16 private _attrType;
 
     // attrId => metadata
-    mapping(uint256 => AttrMetadata) private _attrMetadatas;
+    mapping(uint256 => AttrMetadata) public _attrMetadatas;
     // attrId => tokenId => amount
-    mapping(uint256 => mapping(uint256 => uint256)) private _balances;
+    mapping(uint256 => mapping(uint256 => uint256)) public _balances;
     // tokenId => attrs
     mapping(uint256 => uint256[]) public tokenAttrs;
 
@@ -293,10 +294,18 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
         return _attrMetadatas[attrId].exist;
     }
 
-    function _asSingletonArray(uint256 element) private pure returns (uint256[] memory) {
+    function _asSingletonArray(uint256 element) internal pure returns (uint256[] memory) {
         uint256[] memory array = new uint256[](1);
         array[0] = element;
 
         return array;
+    }
+
+    function _removeByValue(uint256[] storage values, uint value) internal {
+        uint i = 0;
+        while (values[i] != value) {
+            i++;
+        }
+        delete values[i];
     }
 }

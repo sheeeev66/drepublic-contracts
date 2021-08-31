@@ -10,7 +10,7 @@ contract ERC3664Generic is Context, AccessControlEnumerable, ERC3664 {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant ATTACH_ROLE = keccak256("ATTACH_ROLE");
 
-    constructor () ERC3664(2){
+    constructor (uint16 attrType) ERC3664(attrType) {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
         _setupRole(MINTER_ROLE, _msgSender());
