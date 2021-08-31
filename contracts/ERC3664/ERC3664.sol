@@ -294,6 +294,10 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
         return _attrMetadatas[attrId].exist;
     }
 
+    function _hasAttr(uint256 tokenId, uint256 attrId) internal view returns (bool) {
+        return _balances[attrId][tokenId] > 0;
+    }
+
     function _asSingletonArray(uint256 element) internal pure returns (uint256[] memory) {
         uint256[] memory array = new uint256[](1);
         array[0] = element;
