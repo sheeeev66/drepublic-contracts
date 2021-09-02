@@ -52,9 +52,6 @@ module.exports = {
 			provider: () => new HDWalletProvider(mnemonic,
 				'https://data-seed-prebsc-1-s1.binance.org:8545/'
 			),
-			// provider: () => new HDWalletProvider(mnemonic,
-			// 	'wss://data-seed-prebsc-1-s1.binance.org:8545'
-			// ),
 			network_id: '97',
 			gas: 5500000
 		},
@@ -122,5 +119,11 @@ module.exports = {
 
 	db: {
 		enabled: false
+	},
+	plugins: [
+		'truffle-plugin-verify'
+	],
+	api_keys: {
+		etherscan: 'DVJKJKFWWZKIMXBTFZZTY462GVBAR5QJ58'
 	}
 };

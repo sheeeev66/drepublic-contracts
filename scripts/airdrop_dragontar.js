@@ -9,18 +9,22 @@ const parse = require('csv-parse/lib/sync');
 const mnemonic = fs.readFileSync(".secret").toString().trim();
 const bscLiveNetwork = "https://bsc-dataseed1.binance.org/";
 const bscTestNetwork = "https://data-seed-prebsc-1-s1.binance.org:8545/";
-const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
+// mainnet
+// const caller = "0x3dcd25d7ccaf291cb36d5ca3df9b1468d2c97734";
+// const nftFactoryAddress = "0x5492d2B7d886Cf6A3bE65439a2ca3AF0405Cd5b4";
 
+// testnet
+const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
 const nftFactoryAddress = "0xa278641228CCfE148B9B6A0aeEE7A944093aa125";
 
 async function main() {
-    const provider = new HDWalletProvider(mnemonic, bscTestNetwork);
+    const provider = new HDWalletProvider(mnemonic, bscLiveNetwork);
     const web3 = new Web3(provider);
 
     const nftFactoryInstance = new web3.eth.Contract(
         NFTFactoryABI.abi,
         nftFactoryAddress,
-        {gasLimit: "20000000"}
+        {gasLimit: "25000000"}
     );
 
     const dragontarContent = await fs.promises.readFile(__dirname + '/airdrop_dragontar_1.csv');
@@ -52,6 +56,7 @@ async function main() {
     let owners = [];
     let metadatas = [];
     let values = [];
+    // i 从0递增到19
     let i = 0;
     for (i; i < dragontars.length; i++) {
         metadatas.push(dragontars[i].full_ID);
@@ -60,6 +65,8 @@ async function main() {
             parseInt(dragontars[i].mouth), parseInt(dragontars[i].decorates), parseInt(dragontars[i].hat),
             parseInt(dragontars[i].rare)]);
         owners.push(recipients[i].recipient);
+
+        // console.log("getHolderTokens=> owner: "+ recipients[i].recipient + "nft: " + await nftFactoryInstance.methods.getHolderTokens(recipients[i].recipient, 100, 0).call());
     }
 
     const ret = await nftFactoryInstance.methods
@@ -80,7 +87,7 @@ async function main() {
     //         [7, 5, 0, 0, 7, 1, 3, 0, 10, 10]
     //     ).send({from: caller});
     //
-    // console.log("nft factory getHolderTokens: ", await nftFactoryInstance.methods.getHolderTokens(user, 10, 0).call());
+    // console.log("nft factory getHolderTokens: ", await nftFactoryInstance.methods.getHolderTokens(user, 100, 0).call());
 
 }
 
