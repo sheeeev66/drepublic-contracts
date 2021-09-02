@@ -24,7 +24,7 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
     // 3 => Updatable
     // 4 => Upgradable
     // 5 => Transferable
-    // 6 => Evolutive
+    // 6 => Evolvable
     // others
     uint16 private _attrType;
 

@@ -6,7 +6,7 @@ abstract contract AttributeClass {
     // 1 => Generic,
     // 2 => Upgradable,
     // 3 => Transferable,
-    // 4 => Evolutive
+    // 4 => Evolvable
     // more expand...
     uint16 private _class;
 
