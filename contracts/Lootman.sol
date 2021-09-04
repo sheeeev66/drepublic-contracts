@@ -6,95 +6,90 @@ import "openzeppelin-solidity/contracts/token/ERC721/extensions/ERC721Enumerable
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/utils/Strings.sol";
+import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 import "./ERC3664/extensions/ERC3664Combinable.sol";
 
 contract Lootman is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
+    using SafeMath for uint256;
 
-    string[] private rarely = ["SSR", "SR", "R"];
+    uint256 private _curTokenId = 0;
 
-    // max length: 1000
-    string[] public maleNames;
-    // max length: 1000
-    string[] public femaleNames;
+    uint256 public constant NAME_ATTR_ID = 1;
 
-    constructor(string memory name_, string memory symbol_) ERC3664Combinable() ERC721(name_, symbol_) Ownable() {
-        require(maleNames.length == femaleNames.length, "Lootman: names length mismatch");
+    constructor() ERC3664Combinable() ERC721("Lootman name", "LTN") Ownable() {
+        _mint(NAME_ATTR_ID, "Lootman Name", "LTN", "");
     }
 
-    function claim(uint256 tokenId) public nonReentrant {
-        require(tokenId > 0 && tokenId <= 1900, "Lootman: Token ID invalid");
-        _safeMint(_msgSender(), tokenId);
-        attach(tokenId, tokenId, 0);
+    function getNextTokenID() public view returns (uint256) {
+        return _curTokenId.add(1);
     }
 
-    function combine(uint256 tokenId, uint256[] calldata subs) public {
+    function claimName(string memory name) public nonReentrant {
+        _curTokenId += 1;
+        _safeMint(_msgSender(), _curTokenId);
+        attach(_curTokenId, NAME_ATTR_ID, 1, bytes(name));
+    }
+
+    function combine(uint256 tokenId, uint256[] calldata subTokens) public {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Lootman: caller is not main token owner nor approved");
-        for (uint256 i = 0; i < subs.length; i++) {
-            require(_isApprovedOrOwner(_msgSender(), subs[i]), "Lootman: caller is not sub token owner nor approved");
-            _burn(subs[i]);
-            super.combine(tokenId, subs[i]);
+        for (uint256 i = 0; i < subTokens.length; i++) {
+            require(_isApprovedOrOwner(_msgSender(), subTokens[i]), "Lootman: caller is not sub token owner nor approved");
+            _burn(subTokens[i]);
+            super.combine(tokenId, subTokens[i]);
         }
     }
 
-    function uploadMaleNames(string[] calldata _names, string _symbol) public nonReentrant onlyOwner {
-        require(maleNames.length + _names.length <= 1000, "Lootman: Token ID invalid");
-        for (uint i = 0; i < _names.length; i++) {
-            maleNames.push(_names[i]);
-        }
-    }
-
-    function uploadFemaleNames(string[] calldata _names) public nonReentrant onlyOwner {
-        require(femaleNames.length + _names.length <= 1000, "Lootman: Token ID invalid");
-        for (uint i = 0; i < _names.length; i++) {
-            femaleNames.push(_names[i]);
-        }
-    }
-
-    function ownerClaim(uint256 tokenId) public nonReentrant onlyOwner {
-        require(tokenId > 1900 && tokenId <= 2000, "Lootman: Token ID invalid");
-        _safeMint(owner(), tokenId);
+    function mintAttribute(
+        uint256 attrId,
+        string memory _name,
+        string memory _symbol,
+        string memory _uri
+    ) public onlyOwner {
+        _mint(attrId, _name, _symbol, _uri);
     }
 
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
         string[3] memory parts;
         parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 300 100"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="25" class="base">';
 
-        string memory name = "";
-        string memory rare = "";
-        (name, rare) = getName(tokenId);
-        parts[1] = name;
+        parts[1] = getMetadata(tokenId);
+
+        //        string[] memory sm = getSubMetadata(tokenId);
+        //        for (uint i = 0; i < sm.length; i++) {
+        //            uint256 pos = 20 * i + 45;
+        //            parts[i * 2 + 2] = string(abi.encodePacked('</text><text x="10" y="', pos.toString(), '" class="base">'));
+        //            parts[i * 2 + 3] = sm[i];
+        //        }
 
         parts[2] = '</text></svg>';
 
         string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2]));
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "LFN #', tokenId.toString(), '", "description": "Lootman is a combinable identity system. Use lootman as your name in the metaverse and roam the metaverse. Stage 1: 2000 first names mint [start]. Stage 2: 2000 last names mint. Stage 3: combine complete names. Stage 4: post an attribute/body part every two days. Stage 5: free splicing complete your metaverse identity lootman!", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '",', '"attributes":[{"trait_type":"Rarely","value":"', rare, '"}]}'))));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "LTN #', tokenId.toString(), '", "description": "Lootman is a combinable identity system. Use lootman as your name in the metaverse and roam the metaverse. Stage 1: 2000 first names mint [start]. Stage 2: 2000 last names mint. Stage 3: combine complete names. Stage 4: post an attribute/body part every two days. Stage 5: free splicing complete your metaverse identity lootman!", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '"}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
 
         return output;
     }
 
-    function getName(uint256 tokenId) internal view returns (string memory, string memory) {
-        string memory name = "";
-        string memory rare = "";
-        uint256 i = 0;
-        if (tokenId <= 1000) {
-            i = tokenId - 1;
-            name = maleNames[i];
-        } else {
-            i = (tokenId - 1) % 1000;
-            name = femaleNames[i];
+    function getSubMetadata(uint256 tokenId) internal view returns (string[] memory) {
+        uint256[] memory subTokens = bundles[tokenId];
+        string[] memory sm = new string[](subTokens.length);
+        for (uint i = 0; i < subTokens.length; i++) {
+            sm[i] = getMetadata(subTokens[i]);
         }
+        return sm;
+    }
 
-        if (i < 100) {
-            rare = rarely[0];
-        } else if (i >= 100 && i < 400) {
-            rare = rarely[1];
-        } else {
-            rare = rarely[2];
+    function getMetadata(uint256 tokenId) internal view returns (string memory) {
+        bytes memory data = "";
+        uint256[] memory attrs = attributesOf(tokenId);
+        for (uint i = 0; i < attrs.length; i++) {
+            if (data.length > 0) {
+                data = abi.encodePacked(data, ' ');
+            }
+            data = abi.encodePacked(data, textOf(tokenId, attrs[i]));
         }
-
-        return (name, rare);
+        return string(data);
     }
 }
 

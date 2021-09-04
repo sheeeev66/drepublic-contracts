@@ -60,9 +60,10 @@ contract ERC3664Evolvable is ERC3664Generic, IERC3664Evolvable {
     function attach(
         uint256 tokenId,
         uint256 attrId,
-        uint256 amount
+        uint256 amount,
+        bytes memory text
     ) public virtual override(ERC3664Generic, IERC3664) {
-        super.attach(tokenId, attrId, amount);
+        super.attach(tokenId, attrId, amount, text);
 
         _states[attrId][tokenId] = EvolutiveState(1, block.number, block.number +
             _settings[attrId].evolutiveIntervals[0], true);

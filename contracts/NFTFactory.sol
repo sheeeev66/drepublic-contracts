@@ -73,7 +73,8 @@ contract NFTFactory is ERC1155Preset {
         address _initialOwner,
         string memory _metadata,
         uint256[] calldata _attributes,
-        uint256[] calldata _values
+        uint256[] calldata _values,
+        bytes[] calldata _texts
     ) public onlyOwner returns (uint256 tokenId) {
         require(_attributes.length == _values.length, "NFTFactory#createNFT: attributes and values length mismatch");
         // create nft only attach generic attribute.
@@ -83,7 +84,7 @@ contract NFTFactory is ERC1155Preset {
         uint256 _id = _currentNFTId++;
         tokenMetadatas[_id] = _metadata;
 
-        IERC3664(attributes[attrType]).batchAttach(_id, _attributes, _values);
+        IERC3664(attributes[attrType]).batchAttach(_id, _attributes, _values, _texts);
 
         tokenId = create(_initialOwner, _id, 1, "", "");
     }
@@ -92,7 +93,8 @@ contract NFTFactory is ERC1155Preset {
         address[] calldata _initialOwners,
         string[] calldata _metadatas,
         uint256[] calldata _attributes,
-        uint256[][] calldata _values
+        uint256[][] calldata _values,
+        bytes[][] calldata _texts
     ) external onlyOwner returns (uint256[] memory tokenIds) {
         require(_initialOwners.length == _metadatas.length,
             "NFTFactory#batchCreateNFT: initialOwners and metadatas length mismatch");
@@ -102,7 +104,7 @@ contract NFTFactory is ERC1155Preset {
 
         tokenIds = new uint256[](_initialOwners.length);
         for (uint i = 0; i < _initialOwners.length; i++) {
-            createNFT(_initialOwners[i], _metadatas[i], _attributes, _values[i]);
+            createNFT(_initialOwners[i], _metadatas[i], _attributes, _values[i], _texts[i]);
         }
     }
 

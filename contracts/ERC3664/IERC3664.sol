@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/utils/introspection/IERC165.sol";
+//import "openzeppelin-solidity/contracts/utils/introspection/IERC165.sol";
 
-interface IERC3664 is IERC165 {
+interface IERC3664 {
     /**
      * @dev Emitted when new attribute type `attrId` are minted.
      */
@@ -68,10 +68,12 @@ interface IERC3664 is IERC165 {
     view
     returns (uint256[] memory);
 
+    function textOf(uint256 tokenId, uint256 attrId) external view returns (bytes memory);
+
     /**
      * @dev Attaches `amount` value of attribute type `attrId` to `tokenId`.
      */
-    function attach(uint256 tokenId, uint256 attrId, uint256 amount) external;
+    function attach(uint256 tokenId, uint256 attrId, uint256 amount, bytes memory text) external;
 
     /**
      * @dev [Batched] version of {attach}.
@@ -79,6 +81,7 @@ interface IERC3664 is IERC165 {
     function batchAttach(
         uint256 tokenId,
         uint256[] calldata attrIds,
-        uint256[] calldata amounts
+        uint256[] calldata amounts,
+        bytes[] calldata texts
     ) external;
 }

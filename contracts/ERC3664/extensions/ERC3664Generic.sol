@@ -50,10 +50,15 @@ contract ERC3664Generic is Context, AccessControlEnumerable, ERC3664 {
     /**
      * @dev See {ERC3664-attach}.
      */
-    function attach(uint256 tokenId, uint256 attrId, uint256 amount) public virtual override {
+    function attach(
+        uint256 tokenId,
+        uint256 attrId,
+        uint256 amount,
+        bytes memory text
+    ) public virtual override {
         require(hasRole(ATTACH_ROLE, _msgSender()), "ERC3664Generic: must have attach role to attach");
 
-        super.attach(tokenId, attrId, amount);
+        super.attach(tokenId, attrId, amount, text);
     }
 
     /**
@@ -62,23 +67,24 @@ contract ERC3664Generic is Context, AccessControlEnumerable, ERC3664 {
     function batchAttach(
         uint256 tokenId,
         uint256[] calldata attrIds,
-        uint256[] calldata amounts
+        uint256[] calldata amounts,
+        bytes[] calldata texts
     ) public virtual override {
         require(hasRole(ATTACH_ROLE, _msgSender()), "ERC3664Generic: must have attach role to attach");
 
-        super.batchAttach(tokenId, attrIds, amounts);
+        super.batchAttach(tokenId, attrIds, amounts, texts);
     }
 
-    /**
-     * @dev See {IERC165-supportsInterface}.
-     */
-    function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(AccessControlEnumerable, ERC3664)
-    returns (bool)
-    {
-        return super.supportsInterface(interfaceId);
-    }
+    //    /**
+    //     * @dev See {IERC165-supportsInterface}.
+    //     */
+    //    function supportsInterface(bytes4 interfaceId)
+    //    public
+    //    view
+    //    virtual
+    //    override(AccessControlEnumerable, ERC3664)
+    //    returns (bool)
+    //    {
+    //        return super.supportsInterface(interfaceId);
+    //    }
 }
