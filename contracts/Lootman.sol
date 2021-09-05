@@ -28,6 +28,8 @@ contract Lootman is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownabl
     }
 
     function claimName(string memory name) public nonReentrant {
+        require(getNextTokenID() <= 8000, "Lootman: Reached the maximum number of claim");
+
         _curTokenId += 1;
         _safeMint(_msgSender(), _curTokenId);
         attach(_curTokenId, NAME_ATTR_ID, 1, bytes(name));
@@ -52,53 +54,34 @@ contract Lootman is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownabl
     }
 
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
-        string[] memory sm = getSubMetadata(tokenId);
-        uint length = 3 + sm.length * 2;
-        string[] memory parts = new string[](length);
+        string[3] memory parts;
         parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 300 100"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="25" class="base">';
 
-        parts[1] = getMetadata(tokenId);
+        parts[1] = getImageText(tokenId, 25);
 
-        for (uint i = 0; i < sm.length; i++) {
-            uint256 pos = 20 * i + 45;
-            parts[i * 2 + 2] = string(abi.encodePacked('</text><text x="10" y="', pos.toString(), '" class="base">'));
-            parts[i * 2 + 3] = sm[i];
-        }
+        parts[2] = '</text></svg>';
 
-        parts[2 + sm.length * 2] = '</text></svg>';
-
-        string memory output;
-        for (uint j = 0; j < parts.length; j++) {
-            output = string(abi.encodePacked(output, parts[j]));
-        }
-
+        string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2]));
         string memory attributes = getAttributes(tokenId);
-
         string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', _projectName, ' #', tokenId.toString(), '", "description": "Lootman is a combinable identity system. Use lootman as your name in the metaverse and roam the metaverse. Stage 1: 2000 first names mint [start]. Stage 2: 2000 last names mint. Stage 3: combine complete names. Stage 4: post an attribute/body part every two days. Stage 5: free splicing complete your metaverse identity lootman!", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
-
         return output;
     }
 
-    function getSubMetadata(uint256 tokenId) internal view returns (string[] memory) {
-        uint256[] memory subTokens = bundles[tokenId];
-        string[] memory sm = new string[](subTokens.length);
-        for (uint i = 0; i < subTokens.length; i++) {
-            sm[i] = getMetadata(subTokens[i]);
-        }
-        return sm;
+    function getImageText(uint256 tokenId, uint256 pos) internal view returns (string memory) {
+        bytes memory text = abi.encodePacked(_projectName, ' #', tokenId.toString());
+        return string(abi.encodePacked(text, getSubImageText(tokenId, pos)));
     }
 
-    function getMetadata(uint256 tokenId) internal view returns (string memory) {
-        bytes memory data = "";
-        uint256[] memory attrs = attributesOf(tokenId);
-        for (uint i = 0; i < attrs.length; i++) {
-            if (data.length > 0) {
-                data = abi.encodePacked(data, ' ');
-            }
-            data = abi.encodePacked(data, textOf(tokenId, attrs[i]));
+    function getSubImageText(uint256 tokenId, uint256 pos) internal view returns (bytes memory) {
+        bytes memory text = "";
+        uint256[] memory tokens = subTokens(tokenId);
+        for (uint i = 0; i < tokens.length; i++) {
+            uint256 newPos = 20 * (i + 1) + pos;
+            text = abi.encodePacked(text, '</text><text x="10" y="', newPos.toString(), '" class="base">');
+            text = abi.encodePacked(text, getImageText(tokens[i], newPos));
         }
-        return string(data);
+        return text;
     }
 
     function getAttributes(uint256 tokenId) internal view returns (string memory) {
@@ -115,14 +98,14 @@ contract Lootman is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownabl
         return string(data);
     }
 
-    function getSubAttributes(uint256 tokenId) internal view returns (string memory) {
+    function getSubAttributes(uint256 tokenId) internal view returns (bytes memory) {
         bytes memory data = "";
         uint256[] memory subTokens = bundles[tokenId];
         for (uint i = 0; i < subTokens.length; i++) {
             data = abi.encodePacked(data, ',');
             data = abi.encodePacked(data, getAttributes(subTokens[i]));
         }
-        return string(data);
+        return data;
     }
 }
 
