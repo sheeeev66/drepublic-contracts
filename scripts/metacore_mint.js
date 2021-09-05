@@ -10,7 +10,7 @@ const rinkebyNetwork = "https://rinkeby.infura.io/v3/8355dcd582884501bae9d5bda7b
 const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
 
 // testnet
-const metacoreAddress = "0x886F97C7A054f06c3BC4745c038EEcA7C9b644c4";
+const metacoreAddress = "0x9AedBf431D3B7b3017539D0BE754828963c77d3c";
 
 // mainnet
 // const metacoreAddress = "0xe98d61D06078993c0cB59Ad3021e1c782dBEe26A";
@@ -29,7 +29,7 @@ async function main() {
 
     console.log("claimName result: " + ret1);
 
-    console.log("tokenURI: " + await metacoreInstance.methods.tokenURI(1).call());
+    console.log("tokenURI 1: " + await metacoreInstance.methods.tokenURI(1).call());
 
     const ret2 = await metacoreInstance.methods.claimWeapon(8001).send({from: caller});
     console.log("combine result: " + ret2);
@@ -44,7 +44,7 @@ async function main() {
     const ret4 = await metacoreInstance.methods.combine(1, [8001]).send({from: caller});
     console.log("combine result: " + ret4);
 
-    console.log("tokenURI: " + await metacoreInstance.methods.tokenURI(1).call());
+    console.log("tokenURI 1: " + await metacoreInstance.methods.tokenURI(1).call());
 
     // console.log("tokenURI: " + await metacoreInstance.methods.bundles(1,0).call());
     //

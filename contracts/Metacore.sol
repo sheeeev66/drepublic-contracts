@@ -186,9 +186,9 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
         string memory attributes = getAttributes(tokenId);
 
         if (getSubTokens(tokenId).length > 0) {
-            output = string(abi.encodePacked(output, ',{"trait_type":"SYNTHETIC","value":"true"}'));
+            attributes = string(abi.encodePacked(attributes, ',{"trait_type":"SYNTHETIC","value":"true"}'));
         } else {
-            output = string(abi.encodePacked(output, ',{"trait_type":"SYNTHETIC","value":"false"}'));
+            attributes = string(abi.encodePacked(attributes, ',{"trait_type":"SYNTHETIC","value":"false"}'));
         }
 
         string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', symbol(getMainAttribute(tokenId)), ' #', tokenId.toString(), '", "description": "MetaCore is an identity system which can make all metaverse citizens join into different metaverses by using same MetaCore Identity. The first modular NFT with MetaCore at its core, with arbitrary attributes addition and removal, freely combine and divide each components. Already adapted to multiple metaverse blockchain games. FUTURE IS COMMING", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
@@ -219,10 +219,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
             if (data.length > 0) {
                 data = abi.encodePacked(data, ',');
             }
-            bytes memory text = textOf(tokenId, attrs[i]);
-            if (text.length > 0) {
-                data = abi.encodePacked(data, '{"trait_type":"', symbol(attrs[i]), '","value":"', text, '"}');
-            }
+            data = abi.encodePacked(data, '{"trait_type":"', symbol(attrs[i]), '","value":"', textOf(tokenId, attrs[i]), '"}');
         }
         data = abi.encodePacked(data, getSubAttributes(tokenId));
 
