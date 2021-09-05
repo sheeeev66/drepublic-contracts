@@ -11,6 +11,8 @@ contract ERC3664Combinable is ERC3664 {
 
     mapping(uint256 => uint256[]) public bundles;
 
+    mapping(uint256 => uint256) public mainAttribute;
+
     // Mapping from token ID to approved another token.
     mapping(uint256 => uint256) private _combineApprovals;
 
@@ -22,6 +24,14 @@ contract ERC3664Combinable is ERC3664 {
 
     function combine(uint256 tokenId, uint256 sub) public virtual {
         bundles[tokenId].push(sub);
+    }
+
+    function setMainAttribute(uint256 tokenId, uint256 attrId) public virtual {
+        mainAttribute[tokenId] = attrId;
+    }
+
+    function getMainAttribute(uint256 tokenId) public view returns (uint256) {
+        return mainAttribute[tokenId];
     }
 
     function subTokens(uint256 tokenId) public view returns (uint256[] memory) {

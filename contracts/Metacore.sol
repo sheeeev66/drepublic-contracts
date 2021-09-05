@@ -15,8 +15,6 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
     uint256 private _curTokenId = 0;
 
-    string private _projectName = "Metacore";
-
     // cores
     uint256 public constant METANAME_ID = 1;
     uint256 public constant WEAPON_ID = 2;
@@ -118,13 +116,13 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
     ];
 
     constructor() ERC3664Combinable() ERC721("Metacore Identity System", "MIS") Ownable() {
-        _mint(METANAME_ID, "Metacore Name", "Metaname", "");
+        _mint(METANAME_ID, "Metacore Name", "MetaCore", "");
         _mint(WEAPON_ID, "Metacore Weapon", "Weapon", "");
         _mint(CHEST_ID, "Metacore Chest", "Chest", "");
 
         _mint(SUFFIX_ID, "Metacore Component Suffix", "Suffix", "");
-        _mint(NAMEPREFIX_ID, "Metacore Component Name Prefix", "NamePrefix", "");
-        _mint(NAMESUFFIX_ID, "Metacore Component Name Suffix", "NameSuffix", "");
+        _mint(NAMEPREFIX_ID, "Metacore Component NamePrefix", "NamePrefix", "");
+        _mint(NAMESUFFIX_ID, "Metacore Component NameSuffix", "NameSuffix", "");
     }
 
     function getNextTokenID() public view returns (uint256) {
@@ -137,18 +135,23 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
         _curTokenId += 1;
         _safeMint(_msgSender(), _curTokenId);
         attach(_curTokenId, METANAME_ID, 1, bytes(name));
+        setMainAttribute(_curTokenId, METANAME_ID);
     }
 
     function claimWeapon(uint256 tokenId) public nonReentrant {
         require(tokenId > 8000 && tokenId <= 9000, "Weapon Token ID invalid");
         _safeMint(_msgSender(), tokenId);
-        attach(_curTokenId, WEAPON_ID, 1, bytes(getWeapon(tokenId)));
+        getWeapon(tokenId);
+        attach(tokenId, WEAPON_ID, 1, bytes(''));
+        setMainAttribute(tokenId, WEAPON_ID);
     }
 
     function claimChest(uint256 tokenId) public nonReentrant {
         require(tokenId > 9000 && tokenId <= 10000, "Chest Token ID invalid");
         _safeMint(_msgSender(), tokenId);
-        attach(_curTokenId, CHEST_ID, 1, bytes(getChest(tokenId)));
+        getChest(tokenId);
+        attach(tokenId, CHEST_ID, 1, bytes(''));
+        setMainAttribute(tokenId, CHEST_ID);
     }
 
     function combine(uint256 tokenId, uint256[] calldata subTokens) public {
@@ -171,21 +174,21 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
         string[3] memory parts;
-        parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 300 100"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="25" class="base">';
+        parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
 
-        parts[1] = getImageText(tokenId, 25);
+        parts[1] = getImageText(tokenId, 20);
 
         parts[2] = '</text></svg>';
 
         string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2]));
         string memory attributes = getAttributes(tokenId);
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', _projectName, ' #', tokenId.toString(), '", "description": "MetaCore is an identity system which can make all metaverse citizens join into different metaverses by using same MetaCore Identity. The first modular NFT with MetaCore at its core, with arbitrary attributes addition and removal, freely combine and divide each components. Already adapted to multiple metaverse blockchain games. FUTURE IS COMMING", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', symbol(getMainAttribute(tokenId)), ' #', tokenId.toString(), '", "description": "MetaCore is an identity system which can make all metaverse citizens join into different metaverses by using same MetaCore Identity. The first modular NFT with MetaCore at its core, with arbitrary attributes addition and removal, freely combine and divide each components. Already adapted to multiple metaverse blockchain games. FUTURE IS COMMING", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
         return output;
     }
 
     function getImageText(uint256 tokenId, uint256 pos) internal view returns (string memory) {
-        bytes memory text = abi.encodePacked(_projectName, ' #', tokenId.toString());
+        bytes memory text = abi.encodePacked(symbol(getMainAttribute(tokenId)), ' #', tokenId.toString());
         return string(abi.encodePacked(text, getSubImageText(tokenId, pos)));
     }
 
@@ -207,7 +210,10 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
             if (data.length > 0) {
                 data = abi.encodePacked(data, ',');
             }
-            data = abi.encodePacked(data, '{"trait_type":"', symbol(attrs[i]), '","value":"', textOf(tokenId, attrs[i]), '"}');
+            bytes memory text = textOf(tokenId, attrs[i]);
+            if (text.length > 0) {
+                data = abi.encodePacked(data, '{"trait_type":"', symbol(attrs[i]), '","value":"', text, '"}');
+            }
         }
         data = abi.encodePacked(data, getSubAttributes(tokenId));
 
@@ -228,11 +234,11 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
         return uint256(keccak256(abi.encodePacked(input)));
     }
 
-    function getWeapon(uint256 tokenId) public returns (string memory) {
+    function getWeapon(uint256 tokenId) internal returns (string memory) {
         return pluck(tokenId, "WEAPON", weapons);
     }
 
-    function getChest(uint256 tokenId) public returns (string memory) {
+    function getChest(uint256 tokenId) internal returns (string memory) {
         return pluck(tokenId, "CHEST", chestArmor);
     }
 
@@ -243,7 +249,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
         output = string(abi.encodePacked(output, " ", suffixes[rand % suffixes.length]));
         attach(tokenId, SUFFIX_ID, 1, bytes(suffixes[rand % suffixes.length]));
-  
+
         if (greatness >= 10) {
             string[2] memory name;
             name[0] = namePrefixes[rand % namePrefixes.length];
