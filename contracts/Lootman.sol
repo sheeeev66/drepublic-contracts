@@ -50,21 +50,26 @@ contract Lootman is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownabl
     }
 
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
-        string[3] memory parts;
+        string[] memory sm = getSubMetadata(tokenId);
+        uint length = 3 + sm.length * 2;
+        string[] memory parts = new string[](length);
         parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 300 100"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="25" class="base">';
 
         parts[1] = getMetadata(tokenId);
 
-        //        string[] memory sm = getSubMetadata(tokenId);
-        //        for (uint i = 0; i < sm.length; i++) {
-        //            uint256 pos = 20 * i + 45;
-        //            parts[i * 2 + 2] = string(abi.encodePacked('</text><text x="10" y="', pos.toString(), '" class="base">'));
-        //            parts[i * 2 + 3] = sm[i];
-        //        }
+        for (uint i = 0; i < sm.length; i++) {
+            uint256 pos = 20 * i + 45;
+            parts[i * 2 + 2] = string(abi.encodePacked('</text><text x="10" y="', pos.toString(), '" class="base">'));
+            parts[i * 2 + 3] = sm[i];
+        }
 
-        parts[2] = '</text></svg>';
+        parts[2 + sm.length * 2] = '</text></svg>';
 
-        string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2]));
+        string memory output;
+        for (uint j = 0; j < parts.length; j++) {
+            output = string(abi.encodePacked(output, parts[j]));
+        }
+
         string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "LTN #', tokenId.toString(), '", "description": "Lootman is a combinable identity system. Use lootman as your name in the metaverse and roam the metaverse. Stage 1: 2000 first names mint [start]. Stage 2: 2000 last names mint. Stage 3: combine complete names. Stage 4: post an attribute/body part every two days. Stage 5: free splicing complete your metaverse identity lootman!", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '"}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
 
