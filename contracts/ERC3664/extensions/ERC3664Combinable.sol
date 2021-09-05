@@ -16,17 +16,21 @@ contract ERC3664Combinable is ERC3664 {
 
     constructor () ERC3664(7) {}
 
-//    function isApprovedCombine(uint256 from, uint256 to, uint256 attrId) public view virtual override returns (bool) {
-//        return _allowances[attrId][from] == to;
-//    }
+    //    function isApprovedCombine(uint256 from, uint256 to, uint256 attrId) public view virtual override returns (bool) {
+    //        return _allowances[attrId][from] == to;
+    //    }
 
     function combine(uint256 tokenId, uint256 sub) public virtual {
         bundles[tokenId].push(sub);
     }
 
-//    function separate(uint256 tokenId, uint256[] sub) public virtual override {}
-//
-//    function approveCombine(uint256 from, uint256 to, uint256 attrId) public virtual override {}
-//
-//    function combineFrom(uint256 from, uint256 to, uint256 attrId) public virtual override {}
+    function subTokens(uint256 tokenId) public view returns (uint256[] memory) {
+        return bundles[tokenId];
+    }
+
+    //    function separate(uint256 tokenId, uint256[] sub) public virtual override {}
+    //
+    //    function approveCombine(uint256 from, uint256 to, uint256 attrId) public virtual override {}
+    //
+    //    function combineFrom(uint256 from, uint256 to, uint256 attrId) public virtual override {}
 }

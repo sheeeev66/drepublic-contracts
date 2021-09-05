@@ -15,10 +15,12 @@ contract Lootman is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownabl
 
     uint256 private _curTokenId = 0;
 
+    string private _projectName = "Metacore";
+
     uint256 public constant NAME_ATTR_ID = 1;
 
     constructor() ERC3664Combinable() ERC721("Lootman name", "LTN") Ownable() {
-        _mint(NAME_ATTR_ID, "Lootman Name", "LTN", "");
+        _mint(NAME_ATTR_ID, "Lootman Metaname System", "Metaname", "");
     }
 
     function getNextTokenID() public view returns (uint256) {
@@ -70,7 +72,9 @@ contract Lootman is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownabl
             output = string(abi.encodePacked(output, parts[j]));
         }
 
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "LTN #', tokenId.toString(), '", "description": "Lootman is a combinable identity system. Use lootman as your name in the metaverse and roam the metaverse. Stage 1: 2000 first names mint [start]. Stage 2: 2000 last names mint. Stage 3: combine complete names. Stage 4: post an attribute/body part every two days. Stage 5: free splicing complete your metaverse identity lootman!", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '"}'))));
+        string memory attributes = getAttributes(tokenId);
+
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', _projectName, ' #', tokenId.toString(), '", "description": "Lootman is a combinable identity system. Use lootman as your name in the metaverse and roam the metaverse. Stage 1: 2000 first names mint [start]. Stage 2: 2000 last names mint. Stage 3: combine complete names. Stage 4: post an attribute/body part every two days. Stage 5: free splicing complete your metaverse identity lootman!", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
 
         return output;
@@ -93,6 +97,30 @@ contract Lootman is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownabl
                 data = abi.encodePacked(data, ' ');
             }
             data = abi.encodePacked(data, textOf(tokenId, attrs[i]));
+        }
+        return string(data);
+    }
+
+    function getAttributes(uint256 tokenId) internal view returns (string memory) {
+        bytes memory data = "";
+        uint256[] memory attrs = attributesOf(tokenId);
+        for (uint i = 0; i < attrs.length; i++) {
+            if (data.length > 0) {
+                data = abi.encodePacked(data, ',');
+            }
+            data = abi.encodePacked(data, '{"trait_type":"', symbol(attrs[i]), '","value":"', textOf(tokenId, attrs[i]), '"}');
+        }
+        data = abi.encodePacked(data, getSubAttributes(tokenId));
+
+        return string(data);
+    }
+
+    function getSubAttributes(uint256 tokenId) internal view returns (string memory) {
+        bytes memory data = "";
+        uint256[] memory subTokens = bundles[tokenId];
+        for (uint i = 0; i < subTokens.length; i++) {
+            data = abi.encodePacked(data, ',');
+            data = abi.encodePacked(data, getAttributes(subTokens[i]));
         }
         return string(data);
     }
