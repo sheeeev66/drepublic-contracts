@@ -10,7 +10,7 @@ const rinkebyNetwork = "https://rinkeby.infura.io/v3/8355dcd582884501bae9d5bda7b
 const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
 
 // testnet
-const metacoreAddress = "0x0A555eE2f4FC904Dfec565f859cB32B60D43753a";
+const metacoreAddress = "0xe038a493b6152AF054ed3eacA8CD8e44a69c036F";
 
 // mainnet
 // const metacoreAddress = "0xe98d61D06078993c0cB59Ad3021e1c782dBEe26A";
@@ -25,7 +25,7 @@ async function main() {
         {gasLimit: "5500000"}
     );
 
-    const ret1 = await metacoreInstance.methods.claimCore("Tyler").send({from: caller});
+    const ret1 = await metacoreInstance.methods.claimCore("DRepublic").send({from: caller});
 
     console.log("claimName result: " + ret1);
 
@@ -36,7 +36,7 @@ async function main() {
 
     console.log("tokenURI 8001: " + await metacoreInstance.methods.tokenURI(8001).call());
 
-    const ret3 = await metacoreInstance.methods.claimChest(9001).send({from: caller});
+    const ret3 = await metacoreInstance.methods.claimChest(9002).send({from: caller});
     console.log("combine result: " + ret3);
 
     console.log("tokenURI 9001: " + await metacoreInstance.methods.tokenURI(9001).call());

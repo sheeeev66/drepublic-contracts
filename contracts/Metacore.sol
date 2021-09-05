@@ -173,14 +173,16 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
     }
 
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
-        string[3] memory parts;
+        string[4] memory parts;
         parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
 
-        parts[1] = getImageText(tokenId, 20);
+        parts[1] = string(abi.encodePacked(name(getMainAttribute(tokenId)), ' #', tokenId.toString(), '</text><text x="10" y="40" class="base">'));
 
-        parts[2] = '</text></svg>';
+        parts[2] = getImageText(tokenId, 40);
 
-        string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2]));
+        parts[3] = '</text></svg>';
+
+        string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2], parts[3]));
         string memory attributes = getAttributes(tokenId);
 
         if (getSubTokens(tokenId).length > 0) {
