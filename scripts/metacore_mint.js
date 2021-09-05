@@ -10,7 +10,7 @@ const rinkebyNetwork = "https://rinkeby.infura.io/v3/8355dcd582884501bae9d5bda7b
 const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
 
 // testnet
-const metacoreAddress = "0x6F198ffEAc4C2286AbFE6C85733a814d33176375";
+const metacoreAddress = "0xC1D3a0E4E4265eFAEE38103dadA85d9Cc0Ac75Aa";
 
 // mainnet
 // const metacoreAddress = "0xe98d61D06078993c0cB59Ad3021e1c782dBEe26A";
@@ -25,27 +25,34 @@ async function main() {
         {gasLimit: "5500000"}
     );
 
-    const ret1 = await metacoreInstance.methods
-        .claim("hello").send({from: caller});
+    const ret1 = await metacoreInstance.methods.claimCore("hello").send({from: caller});
 
     console.log("claimName result: " + ret1);
 
     console.log("tokenURI: " + await metacoreInstance.methods.tokenURI(1).call());
 
-    const ret2 = await metacoreInstance.methods
-        .claim("world").send({from: caller});
+    const ret2 = await metacoreInstance.methods.claimCore("world").send({from: caller});
 
     console.log("claimName result: " + ret2);
 
     console.log("tokenURI: " + await metacoreInstance.methods.tokenURI(2).call());
 
-    const ret3 = await metacoreInstance.methods
-        .combine(1, [2]).send({from: caller});
+    const ret3 = await metacoreInstance.methods.combine(1, [2]).send({from: caller});
     console.log("combine result: " + ret3);
 
-    console.log("tokenURI: " + await metacoreInstance.methods.tokenURI(2).call());
-    //
-    // console.log("tokenURI: " + await metacoreInstance.methods.bundles(1,0).call());
+    console.log("tokenURI 2: " + await metacoreInstance.methods.tokenURI(2).call());
+
+    const ret4 = await metacoreInstance.methods.claimWeapon(8001).send({from: caller});
+    console.log("combine result: " + ret4);
+
+    console.log("tokenURI 8001: " + await metacoreInstance.methods.tokenURI(8001).call());
+
+    const ret5 = await metacoreInstance.methods.claimChest(9001).send({from: caller});
+    console.log("combine result: " + ret5);
+
+    console.log("tokenURI 9001: " + await metacoreInstance.methods.tokenURI(9001).call());
+
+    console.log("tokenURI: " + await metacoreInstance.methods.bundles(1,0).call());
     //
     // console.log("tokenURI: " + await metacoreInstance.methods.getSubMetadata(1).call());
 }

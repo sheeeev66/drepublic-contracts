@@ -17,22 +17,138 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
     string private _projectName = "Metacore";
 
+    // cores
     uint256 public constant METANAME_ID = 1;
+    uint256 public constant WEAPON_ID = 2;
+    uint256 public constant CHEST_ID = 3;
+    // components
+    uint256 public constant SUFFIX_ID = 4;
+    uint256 public constant NAMEPREFIX_ID = 5;
+    uint256 public constant NAMESUFFIX_ID = 6;
 
-    constructor() ERC3664Combinable() ERC721("Metacore Identity", "MCI") Ownable() {
-        _mint(METANAME_ID, "Metacore Identity", "Metaname", "");
+
+    string[] private weapons = [
+    "Warhammer",
+    "Quarterstaff",
+    "Maul",
+    "Mace",
+    "Club",
+    "Katana",
+    "Falchion",
+    "Scimitar",
+    "Long Sword",
+    "Short Sword",
+    "Ghost Wand",
+    "Grave Wand",
+    "Bone Wand",
+    "Wand",
+    "Grimoire",
+    "Chronicle",
+    "Tome",
+    "Book"
+    ];
+
+    string[] private chestArmor = [
+    "Divine Robe",
+    "Silk Robe",
+    "Linen Robe",
+    "Robe",
+    "Shirt",
+    "Demon Husk",
+    "Dragonskin Armor",
+    "Studded Leather Armor",
+    "Hard Leather Armor",
+    "Leather Armor",
+    "Holy Chestplate",
+    "Ornate Chestplate",
+    "Plate Mail",
+    "Chain Mail",
+    "Ring Mail"
+    ];
+
+    string[] private suffixes = [
+    "of Power",
+    "of Giants",
+    "of Titans",
+    "of Skill",
+    "of Perfection",
+    "of Brilliance",
+    "of Enlightenment",
+    "of Protection",
+    "of Anger",
+    "of Rage",
+    "of Fury",
+    "of Vitriol",
+    "of the Fox",
+    "of Detection",
+    "of Reflection",
+    "of the Twins"
+    ];
+
+    string[] private namePrefixes = [
+    "Agony", "Apocalypse", "Armageddon", "Beast", "Behemoth", "Blight", "Blood", "Bramble",
+    "Brimstone", "Brood", "Carrion", "Cataclysm", "Chimeric", "Corpse", "Corruption", "Damnation",
+    "Death", "Demon", "Dire", "Dragon", "Dread", "Doom", "Dusk", "Eagle", "Empyrean", "Fate", "Foe",
+    "Gale", "Ghoul", "Gloom", "Glyph", "Golem", "Grim", "Hate", "Havoc", "Honour", "Horror", "Hypnotic",
+    "Kraken", "Loath", "Maelstrom", "Mind", "Miracle", "Morbid", "Oblivion", "Onslaught", "Pain",
+    "Pandemonium", "Phoenix", "Plague", "Rage", "Rapture", "Rune", "Skull", "Sol", "Soul", "Sorrow",
+    "Spirit", "Storm", "Tempest", "Torment", "Vengeance", "Victory", "Viper", "Vortex", "Woe", "Wrath",
+    "Light's", "Shimmering"
+    ];
+
+    string[] private nameSuffixes = [
+    "Bane",
+    "Root",
+    "Bite",
+    "Song",
+    "Roar",
+    "Grasp",
+    "Instrument",
+    "Glow",
+    "Bender",
+    "Shadow",
+    "Whisper",
+    "Shout",
+    "Growl",
+    "Tear",
+    "Peak",
+    "Form",
+    "Sun",
+    "Moon"
+    ];
+
+    constructor() ERC3664Combinable() ERC721("Metacore Identity System", "MIS") Ownable() {
+        _mint(METANAME_ID, "Metacore Name", "Metaname", "");
+        _mint(WEAPON_ID, "Metacore Weapon", "Weapon", "");
+        _mint(CHEST_ID, "Metacore Chest", "Chest", "");
+
+        _mint(SUFFIX_ID, "Metacore Component Suffix", "Suffix", "");
+        _mint(NAMEPREFIX_ID, "Metacore Component Name Prefix", "NamePrefix", "");
+        _mint(NAMESUFFIX_ID, "Metacore Component Name Suffix", "NameSuffix", "");
     }
 
     function getNextTokenID() public view returns (uint256) {
         return _curTokenId.add(1);
     }
 
-    function claim(string memory name) public nonReentrant {
+    function claimCore(string memory name) public nonReentrant {
         require(getNextTokenID() <= 8000, "Metacore: reached the maximum number of claim");
 
         _curTokenId += 1;
         _safeMint(_msgSender(), _curTokenId);
         attach(_curTokenId, METANAME_ID, 1, bytes(name));
+    }
+
+    function claimWeapon(uint256 tokenId) public nonReentrant {
+        require(tokenId > 8000 && tokenId <= 9000, "Weapon Token ID invalid");
+        _safeMint(_msgSender(), tokenId);
+        attach(_curTokenId, WEAPON_ID, 1, bytes(getWeapon(tokenId)));
+    }
+
+    function claimChest(uint256 tokenId) public nonReentrant {
+        require(tokenId > 9000 && tokenId <= 10000, "Chest Token ID invalid");
+        _safeMint(_msgSender(), tokenId);
+        attach(_curTokenId, CHEST_ID, 1, bytes(getChest(tokenId)));
     }
 
     function combine(uint256 tokenId, uint256[] calldata subTokens) public {
@@ -106,6 +222,42 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
             data = abi.encodePacked(data, getAttributes(subTokens[i]));
         }
         return data;
+    }
+
+    function random(string memory input) internal pure returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(input)));
+    }
+
+    function getWeapon(uint256 tokenId) public returns (string memory) {
+        return pluck(tokenId, "WEAPON", weapons);
+    }
+
+    function getChest(uint256 tokenId) public returns (string memory) {
+        return pluck(tokenId, "CHEST", chestArmor);
+    }
+
+    function pluck(uint256 tokenId, string memory keyPrefix, string[] memory sourceArray) internal returns (string memory) {
+        uint256 rand = random(string(abi.encodePacked(keyPrefix, tokenId.toString())));
+        string memory output = sourceArray[rand % sourceArray.length];
+        uint256 greatness = rand % 21;
+
+        output = string(abi.encodePacked(output, " ", suffixes[rand % suffixes.length]));
+        attach(tokenId, SUFFIX_ID, 1, bytes(suffixes[rand % suffixes.length]));
+  
+        if (greatness >= 10) {
+            string[2] memory name;
+            name[0] = namePrefixes[rand % namePrefixes.length];
+            name[1] = nameSuffixes[rand % nameSuffixes.length];
+
+            attach(tokenId, NAMEPREFIX_ID, 1, bytes(name[0]));
+            attach(tokenId, NAMESUFFIX_ID, 1, bytes(name[1]));
+            if (greatness == 19) {
+                output = string(abi.encodePacked('"', name[0], ' ', name[1], '" ', output));
+            } else {
+                output = string(abi.encodePacked('"', name[0], ' ', name[1], '" ', output, " +1"));
+            }
+        }
+        return output;
     }
 }
 
