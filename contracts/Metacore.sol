@@ -9,7 +9,7 @@ import "openzeppelin-solidity/contracts/utils/Strings.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 import "./ERC3664/extensions/ERC3664Combinable.sol";
 
-contract Lootman is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownable {
+contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
     using SafeMath for uint256;
 
@@ -17,28 +17,28 @@ contract Lootman is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownabl
 
     string private _projectName = "Metacore";
 
-    uint256 public constant NAME_ATTR_ID = 1;
+    uint256 public constant METANAME_ID = 1;
 
-    constructor() ERC3664Combinable() ERC721("Lootman name", "LTN") Ownable() {
-        _mint(NAME_ATTR_ID, "Lootman Metaname System", "Metaname", "");
+    constructor() ERC3664Combinable() ERC721("Metacore Identity", "MCI") Ownable() {
+        _mint(METANAME_ID, "Metacore Identity", "Metaname", "");
     }
 
     function getNextTokenID() public view returns (uint256) {
         return _curTokenId.add(1);
     }
 
-    function claimName(string memory name) public nonReentrant {
-        require(getNextTokenID() <= 8000, "Lootman: Reached the maximum number of claim");
+    function claim(string memory name) public nonReentrant {
+        require(getNextTokenID() <= 8000, "Metacore: reached the maximum number of claim");
 
         _curTokenId += 1;
         _safeMint(_msgSender(), _curTokenId);
-        attach(_curTokenId, NAME_ATTR_ID, 1, bytes(name));
+        attach(_curTokenId, METANAME_ID, 1, bytes(name));
     }
 
     function combine(uint256 tokenId, uint256[] calldata subTokens) public {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "Lootman: caller is not main token owner nor approved");
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "Metacore: caller is not main token owner nor approved");
         for (uint256 i = 0; i < subTokens.length; i++) {
-            require(_isApprovedOrOwner(_msgSender(), subTokens[i]), "Lootman: caller is not sub token owner nor approved");
+            require(_isApprovedOrOwner(_msgSender(), subTokens[i]), "Metacore: caller is not sub token owner nor approved");
             _burn(subTokens[i]);
             super.combine(tokenId, subTokens[i]);
         }
@@ -63,7 +63,7 @@ contract Lootman is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownabl
 
         string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2]));
         string memory attributes = getAttributes(tokenId);
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', _projectName, ' #', tokenId.toString(), '", "description": "Lootman is a combinable identity system. Use lootman as your name in the metaverse and roam the metaverse. Stage 1: 2000 first names mint [start]. Stage 2: 2000 last names mint. Stage 3: combine complete names. Stage 4: post an attribute/body part every two days. Stage 5: free splicing complete your metaverse identity lootman!", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', _projectName, ' #', tokenId.toString(), '", "description": "MetaCore is an identity system which can make all metaverse citizens join into different metaverses by using same MetaCore Identity. The first modular NFT with MetaCore at its core, with arbitrary attributes addition and removal, freely combine and divide each components. Already adapted to multiple metaverse blockchain games. FUTURE IS COMMING", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
         return output;
     }
