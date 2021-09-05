@@ -16,7 +16,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
     uint256 private _curTokenId = 0;
 
     // cores
-    uint256 public constant METANAME_ID = 1;
+    uint256 public constant METACORE_ID = 1;
     uint256 public constant WEAPON_ID = 2;
     uint256 public constant CHEST_ID = 3;
     // components
@@ -116,9 +116,9 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
     ];
 
     constructor() ERC3664Combinable() ERC721("Metacore Identity System", "MIS") Ownable() {
-        _mint(METANAME_ID, "Metacore Name", "MetaCore", "");
-        _mint(WEAPON_ID, "Metacore Weapon", "Weapon", "");
-        _mint(CHEST_ID, "Metacore Chest", "Chest", "");
+        _mint(METACORE_ID, "Metacore", "MetaCore", "");
+        _mint(WEAPON_ID, "Weapon", "Weapon", "");
+        _mint(CHEST_ID, "Chest", "Chest", "");
 
         _mint(SUFFIX_ID, "Metacore Component Suffix", "Suffix", "");
         _mint(NAMEPREFIX_ID, "Metacore Component NamePrefix", "NamePrefix", "");
@@ -134,8 +134,8 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
         _curTokenId += 1;
         _safeMint(_msgSender(), _curTokenId);
-        attach(_curTokenId, METANAME_ID, 1, bytes(name));
-        setMainAttribute(_curTokenId, METANAME_ID);
+        attach(_curTokenId, METACORE_ID, 1, bytes(name));
+        setMainAttribute(_curTokenId, METACORE_ID);
     }
 
     function claimWeapon(uint256 tokenId) public nonReentrant {
@@ -156,6 +156,8 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
     function combine(uint256 tokenId, uint256[] calldata subTokens) public {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Metacore: caller is not main token owner nor approved");
+        require(getMainAttribute(tokenId) == METACORE_ID, "Metacore: invalid tokenId only Metacore can be synthesized");
+
         for (uint256 i = 0; i < subTokens.length; i++) {
             require(_isApprovedOrOwner(_msgSender(), subTokens[i]), "Metacore: caller is not sub token owner nor approved");
             _burn(subTokens[i]);
@@ -182,6 +184,13 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
         string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2]));
         string memory attributes = getAttributes(tokenId);
+
+        if (getSubTokens(tokenId).length > 0) {
+            output = string(abi.encodePacked(output, ',{"trait_type":"SYNTHETIC","value":"true"}'));
+        } else {
+            output = string(abi.encodePacked(output, ',{"trait_type":"SYNTHETIC","value":"false"}'));
+        }
+
         string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', symbol(getMainAttribute(tokenId)), ' #', tokenId.toString(), '", "description": "MetaCore is an identity system which can make all metaverse citizens join into different metaverses by using same MetaCore Identity. The first modular NFT with MetaCore at its core, with arbitrary attributes addition and removal, freely combine and divide each components. Already adapted to multiple metaverse blockchain games. FUTURE IS COMMING", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
         return output;
@@ -194,7 +203,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
     function getSubImageText(uint256 tokenId, uint256 pos) internal view returns (bytes memory) {
         bytes memory text = "";
-        uint256[] memory tokens = subTokens(tokenId);
+        uint256[] memory tokens = getSubTokens(tokenId);
         for (uint i = 0; i < tokens.length; i++) {
             uint256 newPos = 20 * (i + 1) + pos;
             text = abi.encodePacked(text, '</text><text x="10" y="', newPos.toString(), '" class="base">');
@@ -222,7 +231,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
     function getSubAttributes(uint256 tokenId) internal view returns (bytes memory) {
         bytes memory data = "";
-        uint256[] memory subTokens = bundles[tokenId];
+        uint256[] memory subTokens = subTokens[tokenId];
         for (uint i = 0; i < subTokens.length; i++) {
             data = abi.encodePacked(data, ',');
             data = abi.encodePacked(data, getAttributes(subTokens[i]));

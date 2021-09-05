@@ -9,7 +9,7 @@ import "../ERC3664.sol";
  */
 contract ERC3664Combinable is ERC3664 {
 
-    mapping(uint256 => uint256[]) public bundles;
+    mapping(uint256 => uint256[]) public subTokens;
 
     mapping(uint256 => uint256) public mainAttribute;
 
@@ -23,7 +23,7 @@ contract ERC3664Combinable is ERC3664 {
     //    }
 
     function combine(uint256 tokenId, uint256 sub) public virtual {
-        bundles[tokenId].push(sub);
+        subTokens[tokenId].push(sub);
     }
 
     function setMainAttribute(uint256 tokenId, uint256 attrId) public virtual {
@@ -34,8 +34,8 @@ contract ERC3664Combinable is ERC3664 {
         return mainAttribute[tokenId];
     }
 
-    function subTokens(uint256 tokenId) public view returns (uint256[] memory) {
-        return bundles[tokenId];
+    function getSubTokens(uint256 tokenId) public view returns (uint256[] memory) {
+        return subTokens[tokenId];
     }
 
     //    function separate(uint256 tokenId, uint256[] sub) public virtual override {}
