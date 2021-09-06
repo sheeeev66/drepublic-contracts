@@ -158,9 +158,25 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
         for (uint256 i = 0; i < subTokens.length; i++) {
             require(_isApprovedOrOwner(_msgSender(), subTokens[i]), "Metacore: caller is not sub token owner nor approved");
-            _burn(subTokens[i]);
+            safeTransferFrom(_msgSender(), address(this), subTokens[i]);
             super.combine(tokenId, subTokens[i]);
         }
+    }
+
+    function separate(uint256 tokenId) public {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "Metacore: caller is not main token owner nor approved");
+        require(getMainAttribute(tokenId) == METACORE_ID, "Metacore: invalid tokenId only Metacore can be synthesized");
+        uint256[] memory subs = getSubTokens(tokenId);
+        require(subs.length > 0, "Metacore: not found subNFT");
+        for (uint256 i = 0; i < subs.length; i++) {
+            address oldOwner = lockedTokens[subs[i]];
+            _transfer(address(this), oldOwner, subs[i]);
+            delete lockedTokens[subs[i]];
+            if (getSubTokens(subs[i]).length > 0) {
+                separate(subs[i]);
+            }
+        }
+        delete subTokens[tokenId];
     }
 
     function mintAttribute(

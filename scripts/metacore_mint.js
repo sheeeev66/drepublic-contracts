@@ -10,7 +10,7 @@ const rinkebyNetwork = "https://rinkeby.infura.io/v3/8355dcd582884501bae9d5bda7b
 const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
 
 // testnet
-const metacoreAddress = "0xe038a493b6152AF054ed3eacA8CD8e44a69c036F";
+const metacoreAddress = "0x0f4621cfbB7642b618d38eAd6d6EdaA20AbCb560";
 
 // mainnet
 // const metacoreAddress = "0xe98d61D06078993c0cB59Ad3021e1c782dBEe26A";
