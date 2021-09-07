@@ -17,7 +17,7 @@ contract ERC3664Combinable is ERC3664 {
     // mainToken => SynthesizedToken
     mapping(uint256 => SynthesizedToken[]) public synthesizedTokens;
 
-    // subToken => address => mainToken
+    // subToken => mainToken => address
     mapping(uint256 => mapping(uint256 => address)) public subTokens;
 
     mapping(uint256 => uint256) public rawAttribute;
@@ -31,12 +31,13 @@ contract ERC3664Combinable is ERC3664 {
     //        return _allowances[attrId][from] == to;
     //    }
 
-    function combine(
+    function recordSynthesized(
         uint256 tokenId,
         address subToken,
         uint256 subId
-    ) public virtual {
+    ) public {
         synthesizedTokens[tokenId].push(SynthesizedToken(subToken, _msgSender(), subId));
+        subTokens[subId][tokenId] = subToken;
     }
 
     function setRawAttribute(uint256 tokenId, uint256 attrId) public virtual {
@@ -69,7 +70,9 @@ contract ERC3664Combinable is ERC3664 {
         bytes memory data = "";
         SynthesizedToken[] memory sTokens = synthesizedTokens[tokenId];
         for (uint i = 0; i < sTokens.length; i++) {
-            data = abi.encodePacked(data, ',');
+            if (data.length > 0) {
+                data = abi.encodePacked(data, ',');
+            }
             data = abi.encodePacked(data, tokenAttributes(sTokens[i].id));
         }
         return data;

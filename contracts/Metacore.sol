@@ -49,11 +49,11 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
         for (uint256 i = 0; i < subTokens.length; i++) {
             // TODO 注册 interface
             ISynthetic721 sContract = ISynthetic721(subTokens[i]);
-            require(sContract.isApprovedForAll(sContract.ownerOf(tokenId), _msgSender()),
+            require(sContract.getApproved(subIds[i]) == address(this),
                 "Metacore: caller is not sub token owner nor approved");
 
             sContract.transferFrom(_msgSender(), address(this), subIds[i]);
-            super.combine(tokenId, subTokens[i], subIds[i]);
+            recordSynthesized(tokenId, subTokens[i], subIds[i]);
         }
     }
 
@@ -96,7 +96,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
         return output;
     }
 
-    function getImageText(uint256 mainId, uint256 subId, uint256 pos) internal view returns (string memory) {
+    function getImageText(uint256 mainId, uint256 subId, uint256 pos) public view returns (string memory) {
         bytes memory text;
         if (_exists(subId) && mainId == 0) {
             text = textOf(subId, getRawAttribute(subId));
@@ -122,7 +122,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
         return text;
     }
 
-    function getAttributes(uint256 mainId, uint256 subId) internal view returns (string memory) {
+    function getAttributes(uint256 mainId, uint256 subId) public view returns (string memory) {
         bytes memory data;
         if (_exists(subId) && mainId == 0) {
             data = bytes(super.tokenAttributes(subId));
@@ -138,7 +138,6 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
         bytes memory data = "";
         SynthesizedToken[] memory tokens = getSynthesizedTokens(tokenId);
         for (uint i = 0; i < tokens.length; i++) {
-            data = abi.encodePacked(data, ',');
             data = abi.encodePacked(data, getAttributes(tokenId, tokens[i].id));
         }
         return data;

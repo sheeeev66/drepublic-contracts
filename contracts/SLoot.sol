@@ -37,29 +37,26 @@ contract SLoot is ISynthetic, Loot {
     }
 
     function pluckAttribute(uint256 tokenId, string memory keyPrefix, string[] memory sourceArray) internal view returns (string memory) {
-        bytes memory data = "";
-
         uint256 rand = random(string(abi.encodePacked(keyPrefix, tokenId.toString())));
         string memory output = sourceArray[rand % sourceArray.length];
-        concatAttribute(data, keyPrefix, output);
+
+        bytes memory data = concatAttribute(keyPrefix, '', output);
+
         uint256 greatness = rand % 21;
         if (greatness > 14) {
-            concatAttribute(data, "suffix", suffixes[rand % suffixes.length]);
+            data = abi.encodePacked(data, ',', concatAttribute(keyPrefix, "suffix", suffixes[rand % suffixes.length]));
         }
         if (greatness >= 19) {
-            concatAttribute(data, "namePrefixes", namePrefixes[rand % namePrefixes.length]);
-            concatAttribute(data, "nameSuffixes", nameSuffixes[rand % nameSuffixes.length]);
+            data = abi.encodePacked(data, ',', concatAttribute(keyPrefix, "namePrefixes", namePrefixes[rand % namePrefixes.length]));
+            data = abi.encodePacked(data, ',', concatAttribute(keyPrefix, "nameSuffixes", nameSuffixes[rand % nameSuffixes.length]));
             if (greatness > 19) {
-                concatAttribute(data, "greatness", "+1");
+                data = abi.encodePacked(data, ',', concatAttribute(keyPrefix, "greatness", "+1"));
             }
         }
         return string(data);
     }
 
-    function concatAttribute(bytes memory data, string memory key, string memory value) internal pure {
-        if (data.length > 0) {
-            data = abi.encodePacked(data, ',');
-        }
-        data = abi.encodePacked(data, '{"trait_type":"', key, '","value":"', value, '"}');
+    function concatAttribute(string memory keyPrefix, string memory key, string memory value) internal pure returns (bytes memory)  {
+        return abi.encodePacked('{"trait_type":"', keyPrefix, ' ', key, '","value":"', value, '"}');
     }
 }

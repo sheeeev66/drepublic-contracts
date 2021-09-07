@@ -5,9 +5,11 @@
 // const NFTBlindBox = artifacts.require("../contracts/NFTBlindBox.sol");
 // const NFTIncubator = artifacts.require("../contracts/NFTIncubator.sol");
 const Metacore = artifacts.require("../contracts/Metacore.sol");
+const SLoot = artifacts.require("../contracts/SLoot.sol");
 
 module.exports = async (deployer) => {
-    await deployer.deploy(Metacore);
+    // await deployer.deploy(Metacore);
+    await deployer.deploy(SLoot);
 
     // await deployer.deploy(ERC3664Generic);
     // await deployer.deploy(NFTFactory, "DRepublic NFT", "DRPC", "https://www.cradles.io/dragontar/");
