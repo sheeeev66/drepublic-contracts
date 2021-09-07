@@ -158,7 +158,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
         for (uint256 i = 0; i < subTokens.length; i++) {
             require(_isApprovedOrOwner(_msgSender(), subTokens[i]), "Metacore: caller is not sub token owner nor approved");
-            safeTransferFrom(_msgSender(), address(this), subTokens[i]);
+            transferFrom(_msgSender(), address(this), subTokens[i]);
             super.combine(tokenId, subTokens[i]);
         }
     }
