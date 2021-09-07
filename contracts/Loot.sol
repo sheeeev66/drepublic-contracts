@@ -1286,7 +1286,7 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
 
 contract Loot is ERC721Enumerable, ReentrancyGuard, Ownable {
 
-    string[] private weapons = [
+    string[] public weapons = [
     "Warhammer",
     "Quarterstaff",
     "Maul",
@@ -1307,7 +1307,7 @@ contract Loot is ERC721Enumerable, ReentrancyGuard, Ownable {
     "Book"
     ];
 
-    string[] private chestArmor = [
+    string[] public chestArmor = [
     "Divine Robe",
     "Silk Robe",
     "Linen Robe",
@@ -1325,7 +1325,7 @@ contract Loot is ERC721Enumerable, ReentrancyGuard, Ownable {
     "Ring Mail"
     ];
 
-    string[] private headArmor = [
+    string[] public headArmor = [
     "Ancient Helm",
     "Ornate Helm",
     "Great Helm",
@@ -1343,7 +1343,7 @@ contract Loot is ERC721Enumerable, ReentrancyGuard, Ownable {
     "Hood"
     ];
 
-    string[] private waistArmor = [
+    string[] public waistArmor = [
     "Ornate Belt",
     "War Belt",
     "Plated Belt",
@@ -1361,7 +1361,7 @@ contract Loot is ERC721Enumerable, ReentrancyGuard, Ownable {
     "Sash"
     ];
 
-    string[] private footArmor = [
+    string[] public footArmor = [
     "Holy Greaves",
     "Ornate Greaves",
     "Greaves",
@@ -1379,7 +1379,7 @@ contract Loot is ERC721Enumerable, ReentrancyGuard, Ownable {
     "Shoes"
     ];
 
-    string[] private handArmor = [
+    string[] public handArmor = [
     "Holy Gauntlets",
     "Ornate Gauntlets",
     "Gauntlets",
@@ -1397,13 +1397,13 @@ contract Loot is ERC721Enumerable, ReentrancyGuard, Ownable {
     "Gloves"
     ];
 
-    string[] private necklaces = [
+    string[] public necklaces = [
     "Necklace",
     "Amulet",
     "Pendant"
     ];
 
-    string[] private rings = [
+    string[] public rings = [
     "Gold Ring",
     "Silver Ring",
     "Bronze Ring",
@@ -1411,7 +1411,7 @@ contract Loot is ERC721Enumerable, ReentrancyGuard, Ownable {
     "Titanium Ring"
     ];
 
-    string[] private suffixes = [
+    string[] public suffixes = [
     "of Power",
     "of Giants",
     "of Titans",
@@ -1430,7 +1430,7 @@ contract Loot is ERC721Enumerable, ReentrancyGuard, Ownable {
     "of the Twins"
     ];
 
-    string[] private namePrefixes = [
+    string[] public namePrefixes = [
     "Agony", "Apocalypse", "Armageddon", "Beast", "Behemoth", "Blight", "Blood", "Bramble",
     "Brimstone", "Brood", "Carrion", "Cataclysm", "Chimeric", "Corpse", "Corruption", "Damnation",
     "Death", "Demon", "Dire", "Dragon", "Dread", "Doom", "Dusk", "Eagle", "Empyrean", "Fate", "Foe",
@@ -1441,7 +1441,7 @@ contract Loot is ERC721Enumerable, ReentrancyGuard, Ownable {
     "Light's", "Shimmering"
     ];
 
-    string[] private nameSuffixes = [
+    string[] public nameSuffixes = [
     "Bane",
     "Root",
     "Bite",
@@ -1595,7 +1595,7 @@ contract Loot is ERC721Enumerable, ReentrancyGuard, Ownable {
         return string(buffer);
     }
 
-    constructor() ERC721("Loot", "LOOT") Ownable() {}
+    constructor() ERC721("Super Loot", "SLOOT") Ownable() {}
 }
 
 /// [MIT License]

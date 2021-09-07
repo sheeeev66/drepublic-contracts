@@ -8,12 +8,19 @@ import "../ERC3664.sol";
  * @dev Implementation of the {ERC3664Combinable} interface.
  */
 contract ERC3664Combinable is ERC3664 {
+    struct SynthesizedToken {
+        address token;
+        address owner;
+        uint256 id;
+    }
 
-    mapping(uint256 => uint256[]) public subTokens;
+    // mainToken => SynthesizedToken
+    mapping(uint256 => SynthesizedToken[]) public synthesizedTokens;
 
-    mapping(uint256 => address) public lockedTokens;
+    // subToken => address => mainToken
+    mapping(uint256 => mapping(uint256 => address)) public subTokens;
 
-    mapping(uint256 => uint256) public mainAttribute;
+    mapping(uint256 => uint256) public rawAttribute;
 
     // Mapping from token ID to approved another token.
     mapping(uint256 => uint256) private _combineApprovals;
@@ -24,21 +31,48 @@ contract ERC3664Combinable is ERC3664 {
     //        return _allowances[attrId][from] == to;
     //    }
 
-    function combine(uint256 tokenId, uint256 sub) public virtual {
-        subTokens[tokenId].push(sub);
-        lockedTokens[sub] = _msgSender();
+    function combine(
+        uint256 tokenId,
+        address subToken,
+        uint256 subId
+    ) public virtual {
+        synthesizedTokens[tokenId].push(SynthesizedToken(subToken, _msgSender(), subId));
     }
 
-    function setMainAttribute(uint256 tokenId, uint256 attrId) public virtual {
-        mainAttribute[tokenId] = attrId;
+    function setRawAttribute(uint256 tokenId, uint256 attrId) public virtual {
+        rawAttribute[tokenId] = attrId;
     }
 
-    function getMainAttribute(uint256 tokenId) public view returns (uint256) {
-        return mainAttribute[tokenId];
+    function getRawAttribute(uint256 tokenId) public view returns (uint256) {
+        return rawAttribute[tokenId];
     }
 
-    function getSubTokens(uint256 tokenId) public view returns (uint256[] memory) {
-        return subTokens[tokenId];
+    function getSynthesizedTokens(uint256 tokenId) public view returns (SynthesizedToken[] memory) {
+        return synthesizedTokens[tokenId];
+    }
+
+    function tokenAttributes(uint256 tokenId) internal view returns (string memory) {
+        bytes memory data = "";
+        uint256[] memory attrs = attributesOf(tokenId);
+        for (uint i = 0; i < attrs.length; i++) {
+            if (data.length > 0) {
+                data = abi.encodePacked(data, ',');
+            }
+            data = abi.encodePacked(data, '{"trait_type":"', symbol(attrs[i]), '","value":"', textOf(tokenId, attrs[i]), '"}');
+        }
+        data = abi.encodePacked(data, getSubAttributes(tokenId));
+
+        return string(data);
+    }
+
+    function getSubAttributes(uint256 tokenId) internal view returns (bytes memory) {
+        bytes memory data = "";
+        SynthesizedToken[] memory sTokens = synthesizedTokens[tokenId];
+        for (uint i = 0; i < sTokens.length; i++) {
+            data = abi.encodePacked(data, ',');
+            data = abi.encodePacked(data, tokenAttributes(sTokens[i].id));
+        }
+        return data;
     }
 
     //
