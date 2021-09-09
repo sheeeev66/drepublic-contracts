@@ -36,7 +36,7 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
     // rinkeby
     address public constant LOOT = 0x5C44B86e21f49cA7e66BB2381D3acD1004E4a1A2;
 
-    uint256 public constant LOOTCORE_NFT = 1;
+    uint256 public constant LEGOOT_NFT = 1;
     uint256 public constant WEAPON_NFT = 2;
     uint256 public constant CHEST_NFT = 3;
     uint256 public constant HEAD_NFT = 4;
@@ -63,7 +63,7 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
         _startId = 0;
         _reserved = 200;
 
-        _mint(LOOTCORE_NFT, "", "lootcore", "");
+        _mint(LEGOOT_NFT, "", "legoot", "");
         _mint(WEAPON_NFT, "", "weapon", "");
         _mint(CHEST_NFT, "", "chest", "");
         _mint(HEAD_NFT, "", "head", "");
@@ -166,23 +166,24 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
     }
 
     function _afterTokenMint(uint256 tokenId) internal virtual {
-        attach(tokenId, LOOTCORE_NFT, 1, bytes("lootcore"), true);
+        attach(tokenId, LEGOOT_NFT, 1, bytes("legoot"), true);
+        uint256 id = _totalSupply + (tokenId - 1) * 8 + 1;
         // WEAPON
-        _mintSubToken(WEAPON_NFT, tokenId, tokenId + _totalSupply + 1);
+        _mintSubToken(WEAPON_NFT, tokenId, id);
         // CHEST
-        _mintSubToken(CHEST_NFT, tokenId, tokenId + _totalSupply + 2);
+        _mintSubToken(CHEST_NFT, tokenId, id + 1);
         // HEAD
-        _mintSubToken(HEAD_NFT, tokenId, tokenId + _totalSupply + 3);
+        _mintSubToken(HEAD_NFT, tokenId, id + 2);
         // WAIST
-        _mintSubToken(WAIST_NFT, tokenId, tokenId + _totalSupply + 4);
+        _mintSubToken(WAIST_NFT, tokenId, id + 3);
         // FOOT
-        _mintSubToken(FOOT_NFT, tokenId, tokenId + _totalSupply + 5);
+        _mintSubToken(FOOT_NFT, tokenId, id + 4);
         // HAND
-        _mintSubToken(HAND_NFT, tokenId, tokenId + _totalSupply + 6);
+        _mintSubToken(HAND_NFT, tokenId, id + 5);
         // NECK
-        _mintSubToken(NECK_NFT, tokenId, tokenId + _totalSupply + 7);
+        _mintSubToken(NECK_NFT, tokenId, id + 6);
         // RING
-        _mintSubToken(RING_NFT, tokenId, tokenId + _totalSupply + 8);
+        _mintSubToken(RING_NFT, tokenId, id + 7);
     }
 
     function _mintSubToken(uint256 attr, uint256 tokenId, uint256 subId) internal virtual {
@@ -199,10 +200,10 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
         uint256 tokenId,
         uint256[] calldata subIds
     ) public {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "SLoot: caller is not token owner nor approved");
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "Legoot: caller is not token owner nor approved");
 
         for (uint256 i = 0; i < subIds.length; i++) {
-            require(getApproved(subIds[i]) == address(this), "SLoot: caller is not sub token owner nor approved");
+            require(getApproved(subIds[i]) == address(this), "Legoot: caller is not sub token owner nor approved");
 
             transferFrom(_msgSender(), address(this), subIds[i]);
             _recordSynthesized(_msgSender(), tokenId, subIds[i]);
@@ -210,10 +211,10 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
     }
 
     function separate(uint256 tokenId) public {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "SLoot: caller is not token owner nor approved");
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "Legoot: caller is not token owner nor approved");
 
         SynthesizedToken[] memory subs = synthesizedTokens[tokenId];
-        require(subs.length > 0, "SLoot: not synthesized token");
+        require(subs.length > 0, "Legoot: not synthesized token");
         for (uint256 i = 0; i < subs.length; i++) {
             transferFrom(address(this), subs[i].owner, subs[i].id);
         }
@@ -221,7 +222,7 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
     }
 
     function separateOne(uint256 tokenId, uint256 subId) public {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "SLoot: caller is not token owner nor approved");
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "Legoot: caller is not token owner nor approved");
         uint idx = _findByValue(synthesizedTokens[tokenId], subId);
         SynthesizedToken memory token = synthesizedTokens[tokenId][idx];
         transferFrom(address(this), token.owner, token.id);
@@ -253,7 +254,7 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
     }
 
     function getImageText(uint256 tokenId, uint256 pos) public view returns (string memory) {
-        bytes memory text;
+        bytes memory text = bytes(tokenText(tokenId, false));
         SynthesizedToken[] memory tokens = synthesizedTokens[tokenId];
         for (uint i = 0; i < tokens.length; i++) {
             uint256 newPos = 20 * (i + 1) + pos;
@@ -282,7 +283,7 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
         } else if (nft_id == RING_NFT) {
             return getRing(tokenId, prefix);
         } else {
-            return string(textOf(tokenId, nft_id));
+            return "";
         }
     }
 
@@ -301,6 +302,9 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
 
     function tokenAttributes(uint256 tokenId) public view virtual returns (string memory) {
         string memory text = tokenText(tokenId, false);
+        if (text.length() == 0) {
+            return "";
+        }
         string memory keyPrefix = symbol(primaryAttributeOf(tokenId));
         string[] memory attrs = text.split(" ");
 
@@ -308,18 +312,18 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
         if (attrs.length > 0) {
             data = _concatAttribute(keyPrefix, "", attrs[0]);
         }
-        if (attrs.length > 1) {
-            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "suffix", attrs[1]));
-        }
-        if (attrs.length > 2) {
-            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "namePrefixes", attrs[2]));
-        }
-        if (attrs.length > 3) {
-            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "nameSuffixes", attrs[3]));
-        }
-        if (attrs.length > 4) {
-            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "greatness", attrs[4]));
-        }
+        //        if (attrs.length > 1) {
+        //            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "suffix", attrs[1]));
+        //        }
+        //        if (attrs.length > 2) {
+        //            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "namePrefixes", attrs[2]));
+        //        }
+        //        if (attrs.length > 3) {
+        //            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "nameSuffixes", attrs[3]));
+        //        }
+        //        if (attrs.length > 4) {
+        //            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "greatness", attrs[4]));
+        //        }
         return string(data);
     }
 
