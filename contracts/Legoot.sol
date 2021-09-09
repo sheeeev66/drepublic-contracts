@@ -7,7 +7,6 @@ import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 //import "./Synthetic/ISynthetic.sol";
 import "./ERC3664/ERC3664.sol";
-import "./utils/StringsUtil.sol";
 
 interface ILoot {
     function getWeapon(uint256 tokenId) external view returns (string memory);
@@ -27,14 +26,39 @@ interface ILoot {
     function getRing(uint256 tokenId) external view returns (string memory);
 }
 
+interface ILootData {
+    function getWeapons() external view returns (string[] memory);
+
+    function getChest() external view returns (string[]  memory);
+
+    function getHead() external view returns (string[]  memory);
+
+    function getWaist() external view returns (string[]  memory);
+
+    function getFoot() external view returns (string[]  memory);
+
+    function getHand() external view returns (string[]  memory);
+
+    function getNecklaces() external view returns (string[]  memory);
+
+    function getRings() external view returns (string[]  memory);
+
+    function getSuffixes() external view returns (string[]  memory);
+
+    function getNamePrefixes() external view returns (string[]  memory);
+
+    function getNameSuffixes() external view returns (string[] memory);
+}
+
 contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
-    using StringsUtil for string;
 
     // mainnet
     //address public constant LOOT = 0xff9c1b15b16263c61d017ee9f65c50e4ae0113d7;
     // rinkeby
     address public constant LOOT = 0x5C44B86e21f49cA7e66BB2381D3acD1004E4a1A2;
+    address public constant LOOTDATA = 0x283D93B97b0923c833374c6401eF74B837B64cAf;
+
 
     uint256 public constant LEGOOT_NFT = 1;
     uint256 public constant WEAPON_NFT = 2;
@@ -63,15 +87,15 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
         _startId = 0;
         _reserved = 200;
 
-        _mint(LEGOOT_NFT, "", "legoot", "");
-        _mint(WEAPON_NFT, "", "weapon", "");
-        _mint(CHEST_NFT, "", "chest", "");
-        _mint(HEAD_NFT, "", "head", "");
-        _mint(WAIST_NFT, "", "waist", "");
-        _mint(FOOT_NFT, "", "foot", "");
-        _mint(HAND_NFT, "", "hand", "");
-        _mint(NECK_NFT, "", "neck", "");
-        _mint(RING_NFT, "", "ring", "");
+        _mint(LEGOOT_NFT, "LEGOOT", "legoot", "");
+        _mint(WEAPON_NFT, "WEAPON", "weapon", "");
+        _mint(CHEST_NFT, "CHEST", "chest", "");
+        _mint(HEAD_NFT, "HEAD", "head", "");
+        _mint(WAIST_NFT, "WAIST", "waist", "");
+        _mint(FOOT_NFT, "FOOT", "foot", "");
+        _mint(HAND_NFT, "HAND", "hand", "");
+        _mint(NECK_NFT, "NECK", "neck", "");
+        _mint(RING_NFT, "RING", "ring", "");
     }
 
     function increaseIssue(uint256 supply, uint256 startId, uint256 reserved) public onlyOwner {
@@ -241,14 +265,13 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
 
         string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2], parts[3]));
         string memory attributes = getAttributes(tokenId);
-
         if (synthesizedTokens[tokenId].length > 0) {
             attributes = string(abi.encodePacked(attributes, ',{"trait_type":"SYNTHETIC","value":"true"}'));
         } else {
             attributes = string(abi.encodePacked(attributes, ',{"trait_type":"SYNTHETIC","value":"false"}'));
         }
 
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', symbol(primaryAttributeOf(tokenId)), ' #', tokenId.toString(), '", "description": "MetaCore is an identity system which can make all metaverse citizens join into different metaverses by using same MetaCore Identity. The first modular NFT with MetaCore at its core, with arbitrary attributes addition and removal, freely combine and divide each components. Already adapted to multiple metaverse blockchain games. FUTURE IS COMMING", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', symbol(primaryAttributeOf(tokenId)), ' #', tokenId.toString(), '", "description": "Legoot is the first assembly toy that can be freely disassembled and assembled any  times you want. It is a true NFT LEGO, players can freely assemble and disassemble their own legoot parts and sell each part or the whole legoot individually! Not only that, players can mount legoot to metacore for NFT digital identity purposes. This incredible capability is supported by EIP-3664.", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
         return output;
     }
@@ -302,28 +325,53 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
 
     function tokenAttributes(uint256 tokenId) public view virtual returns (string memory) {
         string memory text = tokenText(tokenId, false);
-        if (text.length() == 0) {
+        if (bytes(text).length == 0) {
             return "";
         }
-        string memory keyPrefix = symbol(primaryAttributeOf(tokenId));
-        string[] memory attrs = text.split(" ");
 
-        bytes memory data;
-        if (attrs.length > 0) {
-            data = _concatAttribute(keyPrefix, "", attrs[0]);
+        uint256 nft_id = primaryAttributeOf(tokenId);
+        string memory keyPrefix = name(nft_id);
+        if (nft_id == WEAPON_NFT) {
+            return pluckAttribute(tokenId, keyPrefix, ILootData(LOOTDATA).getWeapons());
+        } else if (nft_id == CHEST_NFT) {
+            return pluckAttribute(tokenId, keyPrefix, ILootData(LOOTDATA).getChest());
+        } else if (nft_id == HEAD_NFT) {
+            return pluckAttribute(tokenId, keyPrefix, ILootData(LOOTDATA).getHead());
+        } else if (nft_id == WAIST_NFT) {
+            return pluckAttribute(tokenId, keyPrefix, ILootData(LOOTDATA).getWaist());
+        } else if (nft_id == FOOT_NFT) {
+            return pluckAttribute(tokenId, keyPrefix, ILootData(LOOTDATA).getFoot());
+        } else if (nft_id == HAND_NFT) {
+            return pluckAttribute(tokenId, keyPrefix, ILootData(LOOTDATA).getHand());
+        } else if (nft_id == NECK_NFT) {
+            return pluckAttribute(tokenId, keyPrefix, ILootData(LOOTDATA).getNecklaces());
+        } else if (nft_id == RING_NFT) {
+            return pluckAttribute(tokenId, keyPrefix, ILootData(LOOTDATA).getRings());
+        } else {
+            return "";
         }
-        //        if (attrs.length > 1) {
-        //            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "suffix", attrs[1]));
-        //        }
-        //        if (attrs.length > 2) {
-        //            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "namePrefixes", attrs[2]));
-        //        }
-        //        if (attrs.length > 3) {
-        //            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "nameSuffixes", attrs[3]));
-        //        }
-        //        if (attrs.length > 4) {
-        //            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "greatness", attrs[4]));
-        //        }
+    }
+
+    function pluckAttribute(uint256 tokenId, string memory keyPrefix, string[] memory sourceArray) internal view returns (string memory) {
+        string[] memory suffixes = ILootData(LOOTDATA).getSuffixes();
+        string[] memory namePrefixes = ILootData(LOOTDATA).getNamePrefixes();
+        string[] memory nameSuffixes = ILootData(LOOTDATA).getNameSuffixes();
+
+        uint256 rand = random(string(abi.encodePacked(keyPrefix, tokenId.toString())));
+        string memory output = sourceArray[rand % sourceArray.length];
+
+        bytes memory data = _concatAttribute(keyPrefix, '', output);
+        uint256 greatness = rand % 21;
+        if (greatness > 14) {
+            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "suffix", suffixes[rand % suffixes.length]));
+        }
+        if (greatness >= 19) {
+            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "namePrefixes", namePrefixes[rand % namePrefixes.length]));
+            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "nameSuffixes", nameSuffixes[rand % nameSuffixes.length]));
+            if (greatness > 19) {
+                data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "greatness", "+1"));
+            }
+        }
         return string(data);
     }
 
@@ -337,6 +385,10 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
             i++;
         }
         return i;
+    }
+
+    function random(string memory input) internal pure returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(input)));
     }
 }
 
