@@ -5,11 +5,10 @@ pragma solidity ^0.8.0;
 import "../ERC3664.sol";
 
 /**
- * @dev Implementation of the {ERC3664Combinable} interface.
+ * @dev Implementation of the {ERC3664Synthetic} interface.
  */
-contract ERC3664Combinable is ERC3664 {
+contract ERC3664Synthetic is ERC3664 {
     struct SynthesizedToken {
-        address token;
         address owner;
         uint256 id;
     }
@@ -17,35 +16,17 @@ contract ERC3664Combinable is ERC3664 {
     // mainToken => SynthesizedToken
     mapping(uint256 => SynthesizedToken[]) public synthesizedTokens;
 
-    // subToken => mainToken => address
-    mapping(uint256 => mapping(uint256 => address)) public subTokens;
-
-    mapping(uint256 => uint256) public rawAttribute;
+    // subToken => mainToken
+    mapping(uint256 => uint256) public subTokens;
 
     // Mapping from token ID to approved another token.
     mapping(uint256 => uint256) private _combineApprovals;
 
-    constructor () ERC3664(7) {}
+    constructor () ERC3664() {}
 
-    //    function isApprovedCombine(uint256 from, uint256 to, uint256 attrId) public view virtual override returns (bool) {
-    //        return _allowances[attrId][from] == to;
-    //    }
-
-    function recordSynthesized(
-        uint256 tokenId,
-        address subToken,
-        uint256 subId
-    ) public {
-        synthesizedTokens[tokenId].push(SynthesizedToken(subToken, _msgSender(), subId));
-        subTokens[subId][tokenId] = subToken;
-    }
-
-    function setRawAttribute(uint256 tokenId, uint256 attrId) public virtual {
-        rawAttribute[tokenId] = attrId;
-    }
-
-    function getRawAttribute(uint256 tokenId) public view returns (uint256) {
-        return rawAttribute[tokenId];
+    function recordSynthesized(address owner, uint256 tokenId, uint256 subId) public {
+        synthesizedTokens[tokenId].push(SynthesizedToken(owner, subId));
+        subTokens[subId] = tokenId;
     }
 
     function getSynthesizedTokens(uint256 tokenId) public view returns (SynthesizedToken[] memory) {
@@ -77,9 +58,4 @@ contract ERC3664Combinable is ERC3664 {
         }
         return data;
     }
-
-    //
-    //    function approveCombine(uint256 from, uint256 to, uint256 attrId) public virtual override {}
-    //
-    //    function combineFrom(uint256 from, uint256 to, uint256 attrId) public virtual override {}
 }

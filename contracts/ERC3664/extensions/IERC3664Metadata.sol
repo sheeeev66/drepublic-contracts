@@ -22,9 +22,4 @@ interface IERC3664Metadata is IERC3664 {
      * @dev Returns the Uniform Resource Identifier (URI) for `attrId` attribute.
      */
     function attrURI(uint256 attrId) external view returns (string memory);
-
-    /**
-     * @dev Returns the type of attribute contract.
-     */
-    function attributeType() external view returns (uint16);
 }

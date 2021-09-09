@@ -2,14 +2,14 @@
 
 pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/utils/Context.sol";
+//import "openzeppelin-solidity/contracts/utils/Context.sol";
 import "openzeppelin-solidity/contracts/utils/Strings.sol";
 //import "openzeppelin-solidity/contracts/utils/introspection/ERC165.sol";
 import "./IERC3664.sol";
 import "./extensions/IERC3664Metadata.sol";
 
 
-contract ERC3664 is Context, IERC3664, IERC3664Metadata {
+contract ERC3664 is IERC3664, IERC3664Metadata {
     using Strings for uint256;
 
     struct AttrMetadata {
@@ -19,27 +19,18 @@ contract ERC3664 is Context, IERC3664, IERC3664Metadata {
         bool exist;
     }
 
-    // 1 => SubNFT
-    // 2 => Generic(stable)
-    // 3 => Updatable
-    // 4 => Upgradable
-    // 5 => Transferable
-    // 6 => Evolvable
-    // others
-    uint16 private _attrType;
-
     // attrId => metadata
     mapping(uint256 => AttrMetadata) public _attrMetadatas;
     // attrId => tokenId => amount
     mapping(uint256 => mapping(uint256 => uint256)) public _balances;
     // attrId => tokenId => text
     mapping(uint256 => mapping(uint256 => bytes)) public _texts;
-    // tokenId => attrs
-    mapping(uint256 => uint256[]) public tokenAttrs;
+    // tokenId => primaryId
+    mapping(uint256 => uint256) public primaryAttrs;
+    // tokenId => secondaryIds
+    mapping(uint256 => uint256[]) public secondaryAttrs;
 
-    constructor (uint16 attrType) {
-        _attrType = attrType;
-    }
+    constructor () {}
 
     //    /**
     //     * @dev See {IERC165-supportsInterface}.
@@ -84,18 +75,15 @@ contract ERC3664 is Context, IERC3664, IERC3664Metadata {
         }
     }
 
-    /**
-     * @dev See {IERC721Metadata-attrURI}.
-     */
-    function attributeType() public view virtual override returns (uint16) {
-        return _attrType;
+    function primaryAttributeOf(uint256 tokenId) public view virtual returns (uint256) {
+        return primaryAttrs[tokenId];
     }
 
     /**
      * @dev See {IERC3664-attributesOf}.
      */
     function attributesOf(uint256 tokenId) public view virtual override returns (uint256[] memory) {
-        return tokenAttrs[tokenId];
+        return secondaryAttrs[tokenId];
     }
 
     /**
@@ -137,16 +125,21 @@ contract ERC3664 is Context, IERC3664, IERC3664Metadata {
         uint256 tokenId,
         uint256 attrId,
         uint256 amount,
-        bytes memory text
+        bytes memory text,
+        bool isPrimary
     ) public virtual override {
         require(_attrExists(attrId), "ERC3664: attach for nonexistent attribute");
 
-        address operator = _msgSender();
+        address operator = msg.sender;
 
         _beforeAttrTransfer(operator, 0, tokenId, _asSingletonArray(attrId), _asSingletonArray(amount), "");
 
         if (_balances[attrId][tokenId] == 0) {
-            tokenAttrs[tokenId].push(attrId);
+            if (isPrimary) {
+                primaryAttrs[tokenId] = attrId;
+            } else {
+                secondaryAttrs[tokenId].push(attrId);
+            }
         }
 
         if (text.length > 0) {
@@ -167,7 +160,7 @@ contract ERC3664 is Context, IERC3664, IERC3664Metadata {
         uint256[] calldata amounts,
         bytes[] calldata texts
     ) public virtual override {
-        address operator = _msgSender();
+        address operator = msg.sender;
 
         _beforeAttrTransfer(operator, 0, tokenId, attrIds, amounts, "");
 
@@ -175,7 +168,7 @@ contract ERC3664 is Context, IERC3664, IERC3664Metadata {
             require(_attrExists(attrIds[i]), "ERC3664: batchAttach for nonexistent attribute");
 
             if (_balances[attrIds[i]][tokenId] == 0) {
-                tokenAttrs[tokenId].push(attrIds[i]);
+                secondaryAttrs[tokenId].push(attrIds[i]);
             }
 
             if (texts[i].length > 0) {
@@ -201,7 +194,7 @@ contract ERC3664 is Context, IERC3664, IERC3664Metadata {
     ) internal virtual {
         require(!_attrExists(attrId), "ERC3664: attribute already exists");
 
-        address operator = _msgSender();
+        address operator = msg.sender;
 
         AttrMetadata memory data = AttrMetadata(_name, _symbol, _uri, true);
         _attrMetadatas[attrId] = data;
@@ -222,7 +215,7 @@ contract ERC3664 is Context, IERC3664, IERC3664Metadata {
         require(names.length == symbols.length, "ERC3664: names and symbols length mismatch");
         require(symbols.length == uris.length, "ERC3664: symbols and uris length mismatch");
 
-        address operator = _msgSender();
+        address operator = msg.sender;
 
         for (uint256 i = 0; i < attrIds.length; i++) {
             require(!_attrExists(attrIds[i]), "ERC3664: attribute already exists");
@@ -242,7 +235,7 @@ contract ERC3664 is Context, IERC3664, IERC3664Metadata {
         uint256 attrId,
         uint256 amount
     ) internal virtual {
-        address operator = _msgSender();
+        address operator = msg.sender;
 
         _beforeAttrTransfer(operator, tokenId, 0, _asSingletonArray(attrId), _asSingletonArray(amount), "");
 
@@ -265,7 +258,7 @@ contract ERC3664 is Context, IERC3664, IERC3664Metadata {
     ) internal virtual {
         require(attrIds.length == amounts.length, "ERC3664: attrIds and amounts length mismatch");
 
-        address operator = _msgSender();
+        address operator = msg.sender;
 
         _beforeAttrTransfer(operator, tokenId, 0, attrIds, amounts, "");
 

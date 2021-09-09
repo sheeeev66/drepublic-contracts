@@ -30,7 +30,7 @@ contract ERC3664Evolvable is ERC3664Generic, IERC3664Evolvable {
     // attribute ID => token ID => evolutive state
     mapping(uint256 => mapping(uint256 => EvolutiveState)) private _states;
 
-    constructor (uint16 attrType) ERC3664Generic(attrType) {
+    constructor () ERC3664Generic() {
         _setupRole(EVOLUTIVER_ROLE, _msgSender());
     }
 
@@ -61,9 +61,10 @@ contract ERC3664Evolvable is ERC3664Generic, IERC3664Evolvable {
         uint256 tokenId,
         uint256 attrId,
         uint256 amount,
-        bytes memory text
+        bytes memory text,
+        bool isPrimary
     ) public virtual override(ERC3664Generic, IERC3664) {
-        super.attach(tokenId, attrId, amount, text);
+        super.attach(tokenId, attrId, amount, text, isPrimary);
 
         _states[attrId][tokenId] = EvolutiveState(1, block.number, block.number +
             _settings[attrId].evolutiveIntervals[0], true);

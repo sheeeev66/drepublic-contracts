@@ -8,7 +8,7 @@ import "./ERC3664Generic.sol";
 contract ERC3664Updatable is IERC3664Updatable, ERC3664Generic {
     bytes32 public constant UPDATER_ROLE = keccak256("UPDATER_ROLE");
 
-    constructor (uint16 attrType) ERC3664Generic(attrType) {
+    constructor () ERC3664Generic() {
         _setupRole(UPDATER_ROLE, _msgSender());
     }
 
@@ -25,7 +25,7 @@ contract ERC3664Updatable is IERC3664Updatable, ERC3664Generic {
         _beforeAttrTransfer(operator, tokenId, 0, _asSingletonArray(attrId), _asSingletonArray(amount), "");
 
         delete _balances[attrId][tokenId];
-        _removeByValue(tokenAttrs[tokenId], attrId);
+        _removeByValue(secondaryAttrs[tokenId], attrId);
 
         emit TransferSingle(operator, tokenId, 0, attrId, amount);
     }

@@ -22,7 +22,7 @@ contract ERC3664Transferable is IERC3664Transferable, ERC3664Generic {
         _;
     }
 
-    constructor (address nft, uint16 attrType) ERC3664Generic(attrType) {
+    constructor (address nft) ERC3664Generic() {
         _nft = nft;
 
         _setupRole(TRANSFER_ROLE, _msgSender());

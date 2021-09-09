@@ -7,10 +7,10 @@ import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/utils/Strings.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
-import "./ERC3664/extensions/ERC3664Combinable.sol";
+import "./ERC3664/extensions/ERC3664CrossSynthetic.sol";
 import "./Synthetic/ISynthetic721.sol";
 
-contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownable {
+contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
     using SafeMath for uint256;
 
@@ -20,7 +20,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
     uint256 public constant METACORE = 1;
 
-    constructor() ERC3664Combinable() ERC721("Metacore Identity System", "MIS") Ownable() {
+    constructor() ERC3664CrossSynthetic() ERC721("Metacore Identity System", "MIS") Ownable() {
         _mint(METACORE, "Metacore", "MetaName", "");
     }
 
@@ -33,8 +33,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
         _curTokenId += 1;
         _safeMint(_msgSender(), _curTokenId);
-        attach(_curTokenId, METACORE, 1, bytes(name));
-        setRawAttribute(_curTokenId, METACORE);
+        attach(_curTokenId, METACORE, 1, bytes(name), true);
     }
 
     function combine(
@@ -44,7 +43,6 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
     ) public {
         require(subTokens.length == subIds.length, "Metacore: subTokens and subIds length not match");
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Metacore: caller is not token owner nor approved");
-        require(getRawAttribute(tokenId) == METACORE, "Metacore: invalid tokenId only Metacore can be synthesized");
 
         for (uint256 i = 0; i < subTokens.length; i++) {
             // TODO 注册 interface
@@ -59,7 +57,6 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
 
     function separate(uint256 tokenId) public {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Metacore: caller is not token owner nor approved");
-        require(getRawAttribute(tokenId) == METACORE, "Metacore: invalid tokenId only Metacore can be synthesized");
 
         SynthesizedToken[] memory subs = getSynthesizedTokens(tokenId);
         require(subs.length > 0, "Metacore: not synthesized token");
@@ -76,7 +73,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
         string[4] memory parts;
         parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
 
-        parts[1] = string(abi.encodePacked(name(getRawAttribute(tokenId)), ' #', tokenId.toString(), '</text><text x="10" y="40" class="base">'));
+        parts[1] = string(abi.encodePacked(name(METACORE), ' #', tokenId.toString(), '</text><text x="10" y="40" class="base">'));
 
         parts[2] = getImageText(0, tokenId, 40);
 
@@ -91,7 +88,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
             attributes = string(abi.encodePacked(attributes, ',{"trait_type":"SYNTHETIC","value":"false"}'));
         }
 
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', name(getRawAttribute(tokenId)), ' #', tokenId.toString(), '", "description": "MetaCore is an identity system which can make all metaverse citizens join into different metaverses by using same MetaCore Identity. The first modular NFT with MetaCore at its core, with arbitrary attributes addition and removal, freely combine and divide each components. Already adapted to multiple metaverse blockchain games. FUTURE IS COMMING", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', name(METACORE), ' #', tokenId.toString(), '", "description": "MetaCore is an identity system which can make all metaverse citizens join into different metaverses by using same MetaCore Identity. The first modular NFT with MetaCore at its core, with arbitrary attributes addition and removal, freely combine and divide each components. Already adapted to multiple metaverse blockchain games. FUTURE IS COMMING", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
         return output;
     }
@@ -99,7 +96,7 @@ contract Metacore is ERC3664Combinable, ERC721Enumerable, ReentrancyGuard, Ownab
     function getImageText(uint256 mainId, uint256 subId, uint256 pos) public view returns (string memory) {
         bytes memory text;
         if (_exists(subId) && mainId == 0) {
-            text = textOf(subId, getRawAttribute(subId));
+            text = textOf(subId, METACORE);
         } else {
             string[] memory subTexts = ISynthetic721(subTokens[subId][mainId]).tokenTexts(subId);
             for (uint i = 0; i < subTexts.length; i++) {

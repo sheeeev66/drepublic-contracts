@@ -73,7 +73,7 @@ interface IERC3664 {
     /**
      * @dev Attaches `amount` value of attribute type `attrId` to `tokenId`.
      */
-    function attach(uint256 tokenId, uint256 attrId, uint256 amount, bytes memory text) external;
+    function attach(uint256 tokenId, uint256 attrId, uint256 amount, bytes memory text, bool isPrimary) external;
 
     /**
      * @dev [Batched] version of {attach}.
