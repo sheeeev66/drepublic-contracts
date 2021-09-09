@@ -2,14 +2,41 @@
 
 pragma solidity ^0.8.0;
 
-import "./SLoot.sol";
+import "openzeppelin-solidity/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 //import "./Synthetic/ISynthetic.sol";
 import "./ERC3664/ERC3664.sol";
+import "./utils/StringsUtil.sol";
 
-contract Legoot is ERC3664, SLoot {
+interface ILoot {
+    function getWeapon(uint256 tokenId) external view returns (string memory);
+
+    function getChest(uint256 tokenId) external view returns (string memory);
+
+    function getHead(uint256 tokenId) external view returns (string memory);
+
+    function getWaist(uint256 tokenId) external view returns (string memory);
+
+    function getFoot(uint256 tokenId) external view returns (string memory);
+
+    function getHand(uint256 tokenId) external view returns (string memory);
+
+    function getNeck(uint256 tokenId) external view returns (string memory);
+
+    function getRing(uint256 tokenId) external view returns (string memory);
+}
+
+contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
+    using StringsUtil for string;
 
-    uint256 public constant SLOOT_NFT = 1;
+    // mainnet
+    //address public constant LOOT = 0xff9c1b15b16263c61d017ee9f65c50e4ae0113d7;
+    // rinkeby
+    address public constant LOOT = 0x5C44B86e21f49cA7e66BB2381D3acD1004E4a1A2;
+
+    uint256 public constant LOOTCORE_NFT = 1;
     uint256 public constant WEAPON_NFT = 2;
     uint256 public constant CHEST_NFT = 3;
     uint256 public constant HEAD_NFT = 4;
@@ -19,6 +46,10 @@ contract Legoot is ERC3664, SLoot {
     uint256 public constant NECK_NFT = 8;
     uint256 public constant RING_NFT = 9;
 
+    uint256 public _totalSupply;
+    uint256 public _startId;
+    uint256 public _reserved;
+
     struct SynthesizedToken {
         address owner;
         uint256 id;
@@ -27,8 +58,12 @@ contract Legoot is ERC3664, SLoot {
     // mainToken => SynthesizedToken
     mapping(uint256 => SynthesizedToken[]) public synthesizedTokens;
 
-    constructor() SLoot() {
-        _mint(SLOOT_NFT, "", "lootcore", "");
+    constructor() ERC721("Legoot", "LEGO") Ownable() {
+        _totalSupply = 8000;
+        _startId = 0;
+        _reserved = 200;
+
+        _mint(LOOTCORE_NFT, "", "lootcore", "");
         _mint(WEAPON_NFT, "", "weapon", "");
         _mint(CHEST_NFT, "", "chest", "");
         _mint(HEAD_NFT, "", "head", "");
@@ -39,8 +74,99 @@ contract Legoot is ERC3664, SLoot {
         _mint(RING_NFT, "", "ring", "");
     }
 
-    function _afterTokenClaim(uint256 tokenId) internal virtual override {
-        attach(tokenId, SLOOT_NFT, 1, bytes(""), true);
+    function increaseIssue(uint256 supply, uint256 startId, uint256 reserved) public onlyOwner {
+        _totalSupply = supply;
+        _startId = startId;
+        _reserved = reserved;
+    }
+
+    function getSubTokens(uint256 tokenId) public view returns (uint256[] memory){
+        SynthesizedToken[] memory tokens = synthesizedTokens[tokenId];
+        uint256[] memory subs = new uint256[](tokens.length);
+        for (uint i = 0; i < tokens.length; i++) {
+            subs[i] = tokens[i].id;
+        }
+        return subs;
+    }
+
+    function claim(uint256 tokenId) public nonReentrant {
+        require(tokenId > _startId && tokenId <= _startId + _totalSupply - _reserved, "Token ID invalid");
+        _mint(_msgSender(), tokenId);
+        _afterTokenMint(tokenId);
+    }
+
+    function ownerClaim(uint256 tokenId) public nonReentrant onlyOwner {
+        require(tokenId > _startId + _totalSupply - _reserved && tokenId <= _startId + _totalSupply, "Token ID invalid");
+        _mint(owner(), tokenId);
+        _afterTokenMint(tokenId);
+    }
+
+    function getWeapon(uint256 tokenId, bool prefix) public view returns (string memory) {
+        if (prefix) {
+            return string(abi.encodePacked('[weapon] ', ILoot(LOOT).getWeapon(tokenId)));
+        } else {
+            return ILoot(LOOT).getWeapon(tokenId);
+        }
+    }
+
+    function getChest(uint256 tokenId, bool prefix) public view returns (string memory){
+        if (prefix) {
+            return string(abi.encodePacked('[chest] ', ILoot(LOOT).getChest(tokenId)));
+        } else {
+            return ILoot(LOOT).getChest(tokenId);
+        }
+    }
+
+    function getHead(uint256 tokenId, bool prefix) public view returns (string memory){
+        if (prefix) {
+            return string(abi.encodePacked('[head] ', ILoot(LOOT).getHead(tokenId)));
+        } else {
+            return ILoot(LOOT).getHead(tokenId);
+        }
+    }
+
+    function getWaist(uint256 tokenId, bool prefix) public view returns (string memory){
+        if (prefix) {
+            return string(abi.encodePacked('[waist] ', ILoot(LOOT).getWaist(tokenId)));
+        } else {
+            return ILoot(LOOT).getWaist(tokenId);
+        }
+    }
+
+    function getFoot(uint256 tokenId, bool prefix) public view returns (string memory){
+        if (prefix) {
+            return string(abi.encodePacked('[foot] ', ILoot(LOOT).getFoot(tokenId)));
+        } else {
+            return ILoot(LOOT).getFoot(tokenId);
+        }
+    }
+
+    function getHand(uint256 tokenId, bool prefix) public view returns (string memory){
+        if (prefix) {
+            return string(abi.encodePacked('[hand] ', ILoot(LOOT).getHand(tokenId)));
+        } else {
+            return ILoot(LOOT).getHand(tokenId);
+        }
+    }
+
+    function getNeck(uint256 tokenId, bool prefix) public view returns (string memory){
+        if (prefix) {
+            return string(abi.encodePacked('[neck] ', ILoot(LOOT).getNeck(tokenId)));
+        } else {
+            return ILoot(LOOT).getNeck(tokenId);
+        }
+    }
+
+    function getRing(uint256 tokenId, bool prefix) public view returns (string memory) {
+        if (prefix) {
+            return string(abi.encodePacked('[ring] ', ILoot(LOOT).getRing(tokenId)));
+        } else {
+            return ILoot(LOOT).getRing(tokenId);
+        }
+    }
+
+    function _afterTokenMint(uint256 tokenId) internal virtual {
+        attach(tokenId, LOOTCORE_NFT, 1, bytes("lootcore"), true);
         // WEAPON
         _mintSubToken(WEAPON_NFT, tokenId, tokenId + _totalSupply + 1);
         // CHEST
@@ -60,7 +186,7 @@ contract Legoot is ERC3664, SLoot {
     }
 
     function _mintSubToken(uint256 attr, uint256 tokenId, uint256 subId) internal virtual {
-        _safeMint(address(this), subId);
+        _mint(address(this), subId);
         attach(subId, attr, 1, bytes(""), true);
         _recordSynthesized(_msgSender(), tokenId, subId);
     }
@@ -106,9 +232,9 @@ contract Legoot is ERC3664, SLoot {
         string[4] memory parts;
         parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
 
-        parts[1] = string(abi.encodePacked(symbol(primaryAttributeOf(tokenId)), ' #', tokenId.toString(), '</text><text x="10" y="40" class="base">'));
+        parts[1] = string(abi.encodePacked(symbol(primaryAttributeOf(tokenId)), ' #', tokenId.toString()));
 
-        parts[2] = getImageText(tokenId, 40);
+        parts[2] = getImageText(tokenId, 20);
 
         parts[3] = '</text></svg>';
 
@@ -132,31 +258,31 @@ contract Legoot is ERC3664, SLoot {
         for (uint i = 0; i < tokens.length; i++) {
             uint256 newPos = 20 * (i + 1) + pos;
             text = abi.encodePacked(text, '</text><text x="10" y="', newPos.toString(), '" class="base">');
-            text = abi.encodePacked(text, tokenText(tokens[i].id));
+            text = abi.encodePacked(text, tokenText(tokens[i].id, true));
         }
         return string(text);
     }
 
-    function tokenText(uint256 tokenId) public view virtual returns (string memory) {
-        uint256 nft_type = primaryAttributeOf(tokenId);
-        if (nft_type == WEAPON_NFT) {
-            return getWeapon(tokenId);
-        } else if (nft_type == CHEST_NFT) {
-            return getChest(tokenId);
-        } else if (nft_type == HEAD_NFT) {
-            return getHead(tokenId);
-        } else if (nft_type == WAIST_NFT) {
-            return getWaist(tokenId);
-        } else if (nft_type == FOOT_NFT) {
-            return getFoot(tokenId);
-        } else if (nft_type == HAND_NFT) {
-            return getHand(tokenId);
-        } else if (nft_type == NECK_NFT) {
-            return getNeck(tokenId);
-        } else if (nft_type == RING_NFT) {
-            return getRing(tokenId);
+    function tokenText(uint256 tokenId, bool prefix) public view virtual returns (string memory) {
+        uint256 nft_id = primaryAttributeOf(tokenId);
+        if (nft_id == WEAPON_NFT) {
+            return getWeapon(tokenId, prefix);
+        } else if (nft_id == CHEST_NFT) {
+            return getChest(tokenId, prefix);
+        } else if (nft_id == HEAD_NFT) {
+            return getHead(tokenId, prefix);
+        } else if (nft_id == WAIST_NFT) {
+            return getWaist(tokenId, prefix);
+        } else if (nft_id == FOOT_NFT) {
+            return getFoot(tokenId, prefix);
+        } else if (nft_id == HAND_NFT) {
+            return getHand(tokenId, prefix);
+        } else if (nft_id == NECK_NFT) {
+            return getNeck(tokenId, prefix);
+        } else if (nft_id == RING_NFT) {
+            return getRing(tokenId, prefix);
         } else {
-            return "";
+            return string(textOf(tokenId, nft_id));
         }
     }
 
@@ -174,44 +300,25 @@ contract Legoot is ERC3664, SLoot {
     }
 
     function tokenAttributes(uint256 tokenId) public view virtual returns (string memory) {
-        uint256 nft_type = primaryAttributeOf(tokenId);
-        if (nft_type == WEAPON_NFT) {
-            return _pluckAttribute(tokenId, "WEAPON", weapons);
-        } else if (nft_type == CHEST_NFT) {
-            return _pluckAttribute(tokenId, "CHEST", chestArmor);
-        } else if (nft_type == HEAD_NFT) {
-            return _pluckAttribute(tokenId, "HEAD", headArmor);
-        } else if (nft_type == WAIST_NFT) {
-            return _pluckAttribute(tokenId, "WAIST", waistArmor);
-        } else if (nft_type == FOOT_NFT) {
-            return _pluckAttribute(tokenId, "FOOT", footArmor);
-        } else if (nft_type == HAND_NFT) {
-            return _pluckAttribute(tokenId, "HAND", handArmor);
-        } else if (nft_type == NECK_NFT) {
-            return _pluckAttribute(tokenId, "NECK", necklaces);
-        } else if (nft_type == RING_NFT) {
-            return _pluckAttribute(tokenId, "RING", rings);
-        } else {
-            return "";
+        string memory text = tokenText(tokenId, false);
+        string memory keyPrefix = symbol(primaryAttributeOf(tokenId));
+        string[] memory attrs = text.split(" ");
+
+        bytes memory data;
+        if (attrs.length > 0) {
+            data = _concatAttribute(keyPrefix, "", attrs[0]);
         }
-    }
-
-    function _pluckAttribute(uint256 tokenId, string memory keyPrefix, string[] memory sourceArray) internal view returns (string memory) {
-        uint256 rand = random(string(abi.encodePacked(keyPrefix, tokenId.toString())));
-        string memory output = sourceArray[rand % sourceArray.length];
-
-        bytes memory data = _concatAttribute(keyPrefix, '', output);
-
-        uint256 greatness = rand % 21;
-        if (greatness > 14) {
-            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "suffix", suffixes[rand % suffixes.length]));
+        if (attrs.length > 1) {
+            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "suffix", attrs[1]));
         }
-        if (greatness >= 19) {
-            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "namePrefixes", namePrefixes[rand % namePrefixes.length]));
-            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "nameSuffixes", nameSuffixes[rand % nameSuffixes.length]));
-            if (greatness > 19) {
-                data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "greatness", "+1"));
-            }
+        if (attrs.length > 2) {
+            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "namePrefixes", attrs[2]));
+        }
+        if (attrs.length > 3) {
+            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "nameSuffixes", attrs[3]));
+        }
+        if (attrs.length > 4) {
+            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "greatness", attrs[4]));
         }
         return string(data);
     }
@@ -226,5 +333,66 @@ contract Legoot is ERC3664, SLoot {
             i++;
         }
         return i;
+    }
+}
+
+/// [MIT License]
+/// @title Base64
+/// @notice Provides a function for encoding some bytes in base64
+/// @author Brecht Devos <brecht@loopring.org>
+library Base64 {
+    bytes internal constant TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    /// @notice Encodes some bytes to the base64 representation
+    function encode(bytes memory data) internal pure returns (string memory) {
+        uint256 len = data.length;
+        if (len == 0) return "";
+
+        // multiply by 4/3 rounded up
+        uint256 encodedLen = 4 * ((len + 2) / 3);
+
+        // Add some extra buffer at the end
+        bytes memory result = new bytes(encodedLen + 32);
+
+        bytes memory table = TABLE;
+
+        assembly {
+            let tablePtr := add(table, 1)
+            let resultPtr := add(result, 32)
+
+            for {
+                let i := 0
+            } lt(i, len) {
+
+            } {
+                i := add(i, 3)
+                let input := and(mload(add(data, i)), 0xffffff)
+
+                let out := mload(add(tablePtr, and(shr(18, input), 0x3F)))
+                out := shl(8, out)
+                out := add(out, and(mload(add(tablePtr, and(shr(12, input), 0x3F))), 0xFF))
+                out := shl(8, out)
+                out := add(out, and(mload(add(tablePtr, and(shr(6, input), 0x3F))), 0xFF))
+                out := shl(8, out)
+                out := add(out, and(mload(add(tablePtr, and(input, 0x3F))), 0xFF))
+                out := shl(224, out)
+
+                mstore(resultPtr, out)
+
+                resultPtr := add(resultPtr, 4)
+            }
+
+            switch mod(len, 3)
+            case 1 {
+                mstore(sub(resultPtr, 2), shl(240, 0x3d3d))
+            }
+            case 2 {
+                mstore(sub(resultPtr, 1), shl(248, 0x3d))
+            }
+
+            mstore(result, encodedLen)
+        }
+
+        return string(result);
     }
 }
