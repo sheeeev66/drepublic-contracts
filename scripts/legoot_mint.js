@@ -10,9 +10,9 @@ const bscTestNetwork = "https://data-seed-prebsc-1-s1.binance.org:8545/";
 const rinkebyNetwork = "https://rinkeby.infura.io/v3/8355dcd582884501bae9d5bda7ba8ecd";
 const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
 
-const lootdataAddress = "0x283D93B97b0923c833374c6401eF74B837B64cAf";
+// const lootdataAddress = "0x283D93B97b0923c833374c6401eF74B837B64cAf";
 
-const legootAddress = "0x96cEc8e9db66CECFdf6Ad0a585C1eAD5F7f3B3Cd";
+const legootAddress = "0xb41b3b6a286718f5c319c9e9ade223f9ee060c54";
 
 // mainnet
 // const legootAddress = "0xe98d61D06078993c0cB59Ad3021e1c782dBEe26A";
@@ -27,17 +27,17 @@ async function main() {
         {gasLimit: "8000000"}
     );
 
-    const lootdataInstance = new web3.eth.Contract(
-        lootdataABI.abi,
-        lootdataAddress,
-        {gasLimit: "5000000"}
-    );
+    // const lootdataInstance = new web3.eth.Contract(
+    //     lootdataABI.abi,
+    //     lootdataAddress,
+    //     {gasLimit: "5000000"}
+    // );
 
-    const lootId = 1;
+    const lootId = 8001;
 
-    const ret1 = await lootInstance.methods.claim(lootId).send({from: caller});
-
-    console.log("claim Legoot result: " + ret1);
+    // const ret1 = await lootInstance.methods.claim(lootId).send({from: caller});
+    //
+    // console.log("claim Legoot result: " + ret1);
 
     console.log("tokenURI Legoot: " + await lootInstance.methods.tokenURI(lootId).call());
 
@@ -51,12 +51,9 @@ async function main() {
 
     // console.log("tokenAttributes Legoot: " + await lootInstance.methods.getAttributes(lootId).call());
 
-    // console.log("tokenAttributes Legoot: " + await lootdataInstance.methods.getWeapons().call());
     //
     // const ret5 = await metacoreInstance.methods.separate(1).send({from: caller});
     // console.log("separate result: " + ret5);
-
-    // console.log("tokenURI: " + await metacoreInstance.methods.bundles(1,0).call());
     //
     // console.log("tokenURI: " + await metacoreInstance.methods.getSubMetadata(1).call());
 }

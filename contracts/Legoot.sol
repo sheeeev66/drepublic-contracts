@@ -59,7 +59,6 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
     address public constant LOOT = 0x5C44B86e21f49cA7e66BB2381D3acD1004E4a1A2;
     address public constant LOOTDATA = 0x283D93B97b0923c833374c6401eF74B837B64cAf;
 
-
     uint256 public constant LEGOOT_NFT = 1;
     uint256 public constant WEAPON_NFT = 2;
     uint256 public constant CHEST_NFT = 3;
@@ -267,8 +266,6 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
         string memory attributes = getAttributes(tokenId);
         if (synthesizedTokens[tokenId].length > 0) {
             attributes = string(abi.encodePacked(attributes, ',{"trait_type":"SYNTHETIC","value":"true"}'));
-        } else {
-            attributes = string(abi.encodePacked(attributes, ',{"trait_type":"SYNTHETIC","value":"false"}'));
         }
 
         string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', symbol(primaryAttributeOf(tokenId)), ' #', tokenId.toString(), '", "description": "Legoot is the first assembly toy that can be freely disassembled and assembled any  times you want. It is a true NFT LEGO, players can freely assemble and disassemble their own legoot parts and sell each part or the whole legoot individually! Not only that, players can mount legoot to metacore for NFT digital identity purposes. This incredible capability is supported by EIP-3664.", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
@@ -278,6 +275,10 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
 
     function getImageText(uint256 tokenId, uint256 pos) public view returns (string memory) {
         bytes memory text = bytes(tokenText(tokenId, false));
+        if (text.length > 0) {
+            pos += 20;
+            text = abi.encodePacked('</text><text x="10" y="', pos.toString(), '" class="base">', text);
+        }
         SynthesizedToken[] memory tokens = synthesizedTokens[tokenId];
         for (uint i = 0; i < tokens.length; i++) {
             uint256 newPos = 20 * (i + 1) + pos;
@@ -289,25 +290,25 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
 
     function tokenText(uint256 tokenId, bool prefix) public view virtual returns (string memory) {
         uint256 nft_id = primaryAttributeOf(tokenId);
+        string memory text = "";
         if (nft_id == WEAPON_NFT) {
-            return getWeapon(tokenId, prefix);
+            text = getWeapon(tokenId, prefix);
         } else if (nft_id == CHEST_NFT) {
-            return getChest(tokenId, prefix);
+            text = getChest(tokenId, prefix);
         } else if (nft_id == HEAD_NFT) {
-            return getHead(tokenId, prefix);
+            text = getHead(tokenId, prefix);
         } else if (nft_id == WAIST_NFT) {
-            return getWaist(tokenId, prefix);
+            text = getWaist(tokenId, prefix);
         } else if (nft_id == FOOT_NFT) {
-            return getFoot(tokenId, prefix);
+            text = getFoot(tokenId, prefix);
         } else if (nft_id == HAND_NFT) {
-            return getHand(tokenId, prefix);
+            text = getHand(tokenId, prefix);
         } else if (nft_id == NECK_NFT) {
-            return getNeck(tokenId, prefix);
+            text = getNeck(tokenId, prefix);
         } else if (nft_id == RING_NFT) {
-            return getRing(tokenId, prefix);
-        } else {
-            return "";
+            text = getRing(tokenId, prefix);
         }
+        return text;
     }
 
     function getAttributes(uint256 tokenId) public view returns (string memory) {
@@ -360,7 +361,8 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
         uint256 rand = random(string(abi.encodePacked(keyPrefix, tokenId.toString())));
         string memory output = sourceArray[rand % sourceArray.length];
 
-        bytes memory data = _concatAttribute(keyPrefix, '', output);
+        bytes memory data = _concatAttribute(keyPrefix, 'NAME', output);
+        data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, 'ID', tokenId.toString()));
         uint256 greatness = rand % 21;
         if (greatness > 14) {
             data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "suffix", suffixes[rand % suffixes.length]));
