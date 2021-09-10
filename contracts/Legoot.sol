@@ -69,6 +69,8 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
     uint256 public constant NECK_NFT = 8;
     uint256 public constant RING_NFT = 9;
 
+    string private _name = "Legoot";
+
     uint256 public _totalSupply;
     uint256 public _startId;
     uint256 public _reserved;
@@ -95,6 +97,10 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         _mint(HAND_NFT, "HAND", "hand", "");
         _mint(NECK_NFT, "NECK", "neck", "");
         _mint(RING_NFT, "RING", "ring", "");
+    }
+
+    function coreName() public view override returns (string memory) {
+        return _name;
     }
 
     function increaseIssue(uint256 supply, uint256 startId, uint256 reserved) public onlyOwner {

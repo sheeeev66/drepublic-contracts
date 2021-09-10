@@ -90,69 +90,33 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
 
         parts[1] = string(abi.encodePacked('Metacore #', tokenId.toString(), '</text><text x="10" y="40" class="base">'));
 
-        parts[2] = getImageText(0, tokenId, 40);
+        parts[2] = string(textOf(tokenId, METANAME));
 
         parts[3] = '</text></svg>';
 
         string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2], parts[3]));
-        string memory attributes = getAttributes(0, tokenId);
+        string memory attributes = getAttributes(tokenId);
 
         if (getSynthesizedTokens(tokenId).length > 0) {
             attributes = string(abi.encodePacked(attributes, ',{"trait_type":"SYNTHETIC","value":"true"}'));
-        } else {
-            attributes = string(abi.encodePacked(attributes, ',{"trait_type":"SYNTHETIC","value":"false"}'));
         }
 
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', name(METANAME), ' #', tokenId.toString(), '", "description": "MetaCore is an identity system which can make all metaverse citizens join into different metaverses by using same MetaCore Identity. The first modular NFT with MetaCore at its core, with arbitrary attributes addition and removal, freely combine and divide each components. Already adapted to multiple metaverse blockchain games. FUTURE IS COMMING", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Metacore #', tokenId.toString(), '", "description": "MetaCore is an identity system which can make all metaverse citizens join into different metaverses by using same MetaCore Identity. The first modular NFT with MetaCore at its core, with arbitrary attributes addition and removal, freely combine and divide each components. Already adapted to multiple metaverse blockchain games. FUTURE IS COMMING", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
         return output;
     }
 
-    function getImageText(uint256 mainId, uint256 subId, uint256 pos) public view returns (string memory) {
-        bytes memory text;
-        if (_exists(subId) && mainId == 0) {
-            text = textOf(subId, METANAME);
-        } else {
-            //            string[] memory subTexts = ISynthetic721(subTokens[subId][mainId]).tokenTexts(subId);
-            //            for (uint i = 0; i < subTexts.length; i++) {
-            //                uint256 newPos = 20 * (i + 1) + pos;
-            //                text = abi.encodePacked(text, '</text><text x="10" y="', newPos.toString(), '" class="base">');
-            //                text = abi.encodePacked(text, subTexts[i]);
-            //            }
-        }
-        return string(abi.encodePacked(text, getSubImageText(subId, pos)));
-    }
-
-    function getSubImageText(uint256 tokenId, uint256 pos) internal view returns (bytes memory) {
-        bytes memory text = "";
-        SynthesizedToken[] memory tokens = getSynthesizedTokens(tokenId);
+    function getAttributes(uint256 tokenId) public view returns (string memory) {
+        bytes memory data = bytes(super.tokenAttributes(tokenId));
+        SynthesizedToken[] memory tokens = synthesizedTokens[tokenId];
         for (uint i = 0; i < tokens.length; i++) {
-            uint256 newPos = 20 * (i + 1) + pos;
-            text = abi.encodePacked(text, '</text><text x="10" y="', newPos.toString(), '" class="base">');
-            text = abi.encodePacked(text, getImageText(tokenId, tokens[i].id, newPos));
+            data = abi.encodePacked(data, ',', _concatAttribute(ISynthetic721(tokens[i].token).coreName(), tokens[i].id.toString()));
         }
-        return text;
-    }
-
-    function getAttributes(uint256 mainId, uint256 subId) public view returns (string memory) {
-        bytes memory data;
-        if (_exists(subId) && mainId == 0) {
-            data = bytes(super.tokenAttributes(subId));
-        } else {
-            data = abi.encodePacked(data, ',', ISynthetic721(subTokens[subId][mainId]).tokenAttributes(subId));
-        }
-
-        data = abi.encodePacked(data, getSubTokenAttributes(subId));
         return string(data);
     }
 
-    function getSubTokenAttributes(uint256 tokenId) internal view returns (bytes memory) {
-        bytes memory data = "";
-        SynthesizedToken[] memory tokens = getSynthesizedTokens(tokenId);
-        for (uint i = 0; i < tokens.length; i++) {
-            data = abi.encodePacked(data, getAttributes(tokenId, tokens[i].id));
-        }
-        return data;
+    function _concatAttribute(string memory key, string memory value) internal pure returns (bytes memory)  {
+        return abi.encodePacked('{"trait_type":"', key, '","value":"', value, '"}');
     }
 
     function _findByValue(SynthesizedToken[] storage values, uint256 value) internal view returns (uint) {
