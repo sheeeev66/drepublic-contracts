@@ -12,7 +12,7 @@ const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
 
 // const lootdataAddress = "0x283D93B97b0923c833374c6401eF74B837B64cAf";
 
-const legootAddress = "0xb41b3b6a286718f5c319c9e9ade223f9ee060c54";
+const legootAddress = "0x3e41F8CA1093D9bE7244299C2594E8159D020464";
 
 // mainnet
 // const legootAddress = "0xe98d61D06078993c0cB59Ad3021e1c782dBEe26A";
@@ -33,29 +33,31 @@ async function main() {
     //     {gasLimit: "5000000"}
     // );
 
-    const lootId = 8001;
+    const lootId = 1;
 
-    // const ret1 = await lootInstance.methods.claim(lootId).send({from: caller});
-    //
-    // console.log("claim Legoot result: " + ret1);
+    const ret1 = await lootInstance.methods.claim(lootId).send({from: caller});
+
+    console.log("claim Legoot result: " + ret1);
 
     console.log("tokenURI Legoot: " + await lootInstance.methods.tokenURI(lootId).call());
+    //
+    const ret2 = await lootInstance.methods.separateOne(lootId, 8001 + (lootId - 1) * 8).send({from: caller});
+    console.log("Legoot separateOne result: " + ret2);
 
-    // const ret3 = await slootInstance.methods.approve(metacoreAddress, slootId).send({from: caller});
-    // console.log("approve SLoot to Metacore contract result: " + ret3);
-    //
-    // const ret4 = await metacoreInstance.methods.combine(meatcoreId, [legootAddress], [slootId]).send({from: caller});
-    // console.log("combine result: " + ret4);
-    //
-    // console.log("tokenURI Metacore: " + await metacoreInstance.methods.tokenURI(meatcoreId).call());
+    console.log("tokenURI: " + await lootInstance.methods.tokenURI(lootId).call());
 
-    // console.log("tokenAttributes Legoot: " + await lootInstance.methods.getAttributes(lootId).call());
+    const ret3 = await lootInstance.methods.separate(lootId).send({from: caller});
+    console.log("Legoot separateAll result: " + ret3);
 
-    //
-    // const ret5 = await metacoreInstance.methods.separate(1).send({from: caller});
-    // console.log("separate result: " + ret5);
-    //
-    // console.log("tokenURI: " + await metacoreInstance.methods.getSubMetadata(1).call());
+    console.log("tokenURI: " + await lootInstance.methods.tokenURI(lootId).call());
+
+    const ret4 = await lootInstance.methods.approve(legootAddress, 8001 + (lootId - 1) * 8).send({from: caller});
+    console.log("approve Legoot to contract result: " + ret4);
+
+    const ret5 = await lootInstance.methods.combine(lootId, [8001 + (lootId - 1) * 8]).send({from: caller});
+    console.log("combine result: " + ret5);
+
+    console.log("tokenURI: " + await lootInstance.methods.tokenURI(lootId).call());
 }
 
 main();

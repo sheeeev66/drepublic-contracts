@@ -124,109 +124,16 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
         _afterTokenMint(tokenId);
     }
 
-    function getWeapon(uint256 tokenId, bool prefix) public view returns (string memory) {
-        if (prefix) {
-            return string(abi.encodePacked('[weapon] ', ILoot(LOOT).getWeapon(tokenId)));
-        } else {
-            return ILoot(LOOT).getWeapon(tokenId);
-        }
-    }
-
-    function getChest(uint256 tokenId, bool prefix) public view returns (string memory){
-        if (prefix) {
-            return string(abi.encodePacked('[chest] ', ILoot(LOOT).getChest(tokenId)));
-        } else {
-            return ILoot(LOOT).getChest(tokenId);
-        }
-    }
-
-    function getHead(uint256 tokenId, bool prefix) public view returns (string memory){
-        if (prefix) {
-            return string(abi.encodePacked('[head] ', ILoot(LOOT).getHead(tokenId)));
-        } else {
-            return ILoot(LOOT).getHead(tokenId);
-        }
-    }
-
-    function getWaist(uint256 tokenId, bool prefix) public view returns (string memory){
-        if (prefix) {
-            return string(abi.encodePacked('[waist] ', ILoot(LOOT).getWaist(tokenId)));
-        } else {
-            return ILoot(LOOT).getWaist(tokenId);
-        }
-    }
-
-    function getFoot(uint256 tokenId, bool prefix) public view returns (string memory){
-        if (prefix) {
-            return string(abi.encodePacked('[foot] ', ILoot(LOOT).getFoot(tokenId)));
-        } else {
-            return ILoot(LOOT).getFoot(tokenId);
-        }
-    }
-
-    function getHand(uint256 tokenId, bool prefix) public view returns (string memory){
-        if (prefix) {
-            return string(abi.encodePacked('[hand] ', ILoot(LOOT).getHand(tokenId)));
-        } else {
-            return ILoot(LOOT).getHand(tokenId);
-        }
-    }
-
-    function getNeck(uint256 tokenId, bool prefix) public view returns (string memory){
-        if (prefix) {
-            return string(abi.encodePacked('[neck] ', ILoot(LOOT).getNeck(tokenId)));
-        } else {
-            return ILoot(LOOT).getNeck(tokenId);
-        }
-    }
-
-    function getRing(uint256 tokenId, bool prefix) public view returns (string memory) {
-        if (prefix) {
-            return string(abi.encodePacked('[ring] ', ILoot(LOOT).getRing(tokenId)));
-        } else {
-            return ILoot(LOOT).getRing(tokenId);
-        }
-    }
-
-    function _afterTokenMint(uint256 tokenId) internal virtual {
-        attach(tokenId, LEGOOT_NFT, 1, bytes("legoot"), true);
-        uint256 id = _totalSupply + (tokenId - 1) * 8 + 1;
-        // WEAPON
-        _mintSubToken(WEAPON_NFT, tokenId, id);
-        // CHEST
-        _mintSubToken(CHEST_NFT, tokenId, id + 1);
-        // HEAD
-        _mintSubToken(HEAD_NFT, tokenId, id + 2);
-        // WAIST
-        _mintSubToken(WAIST_NFT, tokenId, id + 3);
-        // FOOT
-        _mintSubToken(FOOT_NFT, tokenId, id + 4);
-        // HAND
-        _mintSubToken(HAND_NFT, tokenId, id + 5);
-        // NECK
-        _mintSubToken(NECK_NFT, tokenId, id + 6);
-        // RING
-        _mintSubToken(RING_NFT, tokenId, id + 7);
-    }
-
-    function _mintSubToken(uint256 attr, uint256 tokenId, uint256 subId) internal virtual {
-        _mint(address(this), subId);
-        attach(subId, attr, 1, bytes(""), true);
-        _recordSynthesized(_msgSender(), tokenId, subId);
-    }
-
-    function _recordSynthesized(address owner, uint256 tokenId, uint256 subId) internal {
-        synthesizedTokens[tokenId].push(SynthesizedToken(owner, subId));
-    }
-
     function combine(
         uint256 tokenId,
         uint256[] calldata subIds
     ) public {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Legoot: caller is not token owner nor approved");
+        require(primaryAttributeOf(tokenId) == LEGOOT_NFT, "Legoot: only support legoot combine");
 
         for (uint256 i = 0; i < subIds.length; i++) {
             require(getApproved(subIds[i]) == address(this), "Legoot: caller is not sub token owner nor approved");
+            require(primaryAttributeOf(subIds[i]) != LEGOOT_NFT, "Legoot: not support combine between legoots");
 
             transferFrom(_msgSender(), address(this), subIds[i]);
             _recordSynthesized(_msgSender(), tokenId, subIds[i]);
@@ -235,20 +142,25 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
 
     function separate(uint256 tokenId) public {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Legoot: caller is not token owner nor approved");
+        require(primaryAttributeOf(tokenId) == LEGOOT_NFT, "Legoot: only support legoot separate");
 
-        SynthesizedToken[] memory subs = synthesizedTokens[tokenId];
+        SynthesizedToken[] storage subs = synthesizedTokens[tokenId];
         require(subs.length > 0, "Legoot: not synthesized token");
         for (uint256 i = 0; i < subs.length; i++) {
-            transferFrom(address(this), subs[i].owner, subs[i].id);
+            if (subs[i].id > 0 && subs[i].owner != address(0)) {
+                _transfer(address(this), subs[i].owner, subs[i].id);
+            }
         }
         delete synthesizedTokens[tokenId];
     }
 
     function separateOne(uint256 tokenId, uint256 subId) public {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Legoot: caller is not token owner nor approved");
+        require(primaryAttributeOf(tokenId) == LEGOOT_NFT, "Legoot: only support legoot separate");
+
         uint idx = _findByValue(synthesizedTokens[tokenId], subId);
-        SynthesizedToken memory token = synthesizedTokens[tokenId][idx];
-        transferFrom(address(this), token.owner, token.id);
+        SynthesizedToken storage token = synthesizedTokens[tokenId][idx];
+        _transfer(address(this), token.owner, token.id);
         delete synthesizedTokens[tokenId][idx];
     }
 
@@ -375,6 +287,101 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
             }
         }
         return string(data);
+    }
+
+    function getWeapon(uint256 tokenId, bool prefix) public view returns (string memory) {
+        if (prefix) {
+            return string(abi.encodePacked('[weapon] ', ILoot(LOOT).getWeapon(tokenId)));
+        } else {
+            return ILoot(LOOT).getWeapon(tokenId);
+        }
+    }
+
+    function getChest(uint256 tokenId, bool prefix) public view returns (string memory){
+        if (prefix) {
+            return string(abi.encodePacked('[chest] ', ILoot(LOOT).getChest(tokenId)));
+        } else {
+            return ILoot(LOOT).getChest(tokenId);
+        }
+    }
+
+    function getHead(uint256 tokenId, bool prefix) public view returns (string memory){
+        if (prefix) {
+            return string(abi.encodePacked('[head] ', ILoot(LOOT).getHead(tokenId)));
+        } else {
+            return ILoot(LOOT).getHead(tokenId);
+        }
+    }
+
+    function getWaist(uint256 tokenId, bool prefix) public view returns (string memory){
+        if (prefix) {
+            return string(abi.encodePacked('[waist] ', ILoot(LOOT).getWaist(tokenId)));
+        } else {
+            return ILoot(LOOT).getWaist(tokenId);
+        }
+    }
+
+    function getFoot(uint256 tokenId, bool prefix) public view returns (string memory){
+        if (prefix) {
+            return string(abi.encodePacked('[foot] ', ILoot(LOOT).getFoot(tokenId)));
+        } else {
+            return ILoot(LOOT).getFoot(tokenId);
+        }
+    }
+
+    function getHand(uint256 tokenId, bool prefix) public view returns (string memory){
+        if (prefix) {
+            return string(abi.encodePacked('[hand] ', ILoot(LOOT).getHand(tokenId)));
+        } else {
+            return ILoot(LOOT).getHand(tokenId);
+        }
+    }
+
+    function getNeck(uint256 tokenId, bool prefix) public view returns (string memory){
+        if (prefix) {
+            return string(abi.encodePacked('[neck] ', ILoot(LOOT).getNeck(tokenId)));
+        } else {
+            return ILoot(LOOT).getNeck(tokenId);
+        }
+    }
+
+    function getRing(uint256 tokenId, bool prefix) public view returns (string memory) {
+        if (prefix) {
+            return string(abi.encodePacked('[ring] ', ILoot(LOOT).getRing(tokenId)));
+        } else {
+            return ILoot(LOOT).getRing(tokenId);
+        }
+    }
+
+    function _afterTokenMint(uint256 tokenId) internal virtual {
+        attach(tokenId, LEGOOT_NFT, 1, bytes("legoot"), true);
+        uint256 id = _totalSupply + (tokenId - 1) * 8 + 1;
+        // WEAPON
+        _mintSubToken(WEAPON_NFT, tokenId, id);
+        // CHEST
+        _mintSubToken(CHEST_NFT, tokenId, id + 1);
+        // HEAD
+        _mintSubToken(HEAD_NFT, tokenId, id + 2);
+        // WAIST
+        _mintSubToken(WAIST_NFT, tokenId, id + 3);
+        // FOOT
+        _mintSubToken(FOOT_NFT, tokenId, id + 4);
+        // HAND
+        _mintSubToken(HAND_NFT, tokenId, id + 5);
+        // NECK
+        _mintSubToken(NECK_NFT, tokenId, id + 6);
+        // RING
+        _mintSubToken(RING_NFT, tokenId, id + 7);
+    }
+
+    function _mintSubToken(uint256 attr, uint256 tokenId, uint256 subId) internal virtual {
+        _mint(address(this), subId);
+        attach(subId, attr, 1, bytes(""), true);
+        _recordSynthesized(_msgSender(), tokenId, subId);
+    }
+
+    function _recordSynthesized(address owner, uint256 tokenId, uint256 subId) internal {
+        synthesizedTokens[tokenId].push(SynthesizedToken(owner, subId));
     }
 
     function _concatAttribute(string memory keyPrefix, string memory key, string memory value) internal pure returns (bytes memory)  {
