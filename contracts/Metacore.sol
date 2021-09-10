@@ -16,43 +16,50 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
 
     uint256 private _curTokenId = 0;
 
-    mapping(address => uint256[]) private syntheableTokens;
+    uint256 private _totalSupply = 8000;
 
-    uint256 public constant METACORE = 1;
+    mapping(address => bool) private _authNFTs;
 
-    constructor() ERC3664CrossSynthetic() ERC721("Metacore Identity System", "MIS") Ownable() {
-        _mint(METACORE, "Metacore", "MetaName", "");
+    uint256 public constant METANAME = 1;
+
+    constructor() ERC3664CrossSynthetic() ERC721("Metacore Identity System", "Metacore") Ownable() {
+        _authNFTs[0x819766088b2e8Bd418071F89607BaB722fD0A606] = true;
+        _mint(METANAME, "Metaname", "MetaName", "");
     }
 
     function getNextTokenID() public view returns (uint256) {
         return _curTokenId.add(1);
     }
 
+    function increaseIssue(uint256 supply) public onlyOwner {
+        _totalSupply = supply;
+    }
+
+    function setAuthNFTs(address nft, bool enable) public onlyOwner {
+        _authNFTs[nft] = enable;
+    }
+
     function claim(string memory name) public nonReentrant {
-        require(getNextTokenID() <= 8000, "Metacore: reached the maximum number of claim");
+        require(getNextTokenID() <= _totalSupply, "Metacore: reached the maximum number of claim");
 
         _curTokenId += 1;
         _safeMint(_msgSender(), _curTokenId);
-        attach(_curTokenId, METACORE, 1, bytes(name), true);
+        attach(_curTokenId, METANAME, 1, bytes(name), true);
     }
 
     function combine(
         uint256 tokenId,
-        address[] calldata subTokens,
-        uint256[] calldata subIds
+        address subToken,
+        uint256 subId
     ) public {
-        require(subTokens.length == subIds.length, "Metacore: subTokens and subIds length not match");
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "Metacore: caller is not token owner nor approved");
+        require(ownerOf(tokenId) == _msgSender(), "Metacore: caller is not token owner");
+        require(_authNFTs[subToken], "Metacore: invalid nft address");
+        ISynthetic721 sContract = ISynthetic721(subToken);
+        require(sContract.getApproved(subId) == address(this),
+            "Metacore: caller is not sub token owner nor approved");
 
-        for (uint256 i = 0; i < subTokens.length; i++) {
-            // TODO 注册 interface
-            ISynthetic721 sContract = ISynthetic721(subTokens[i]);
-            require(sContract.getApproved(subIds[i]) == address(this),
-                "Metacore: caller is not sub token owner nor approved");
-
-            sContract.transferFrom(_msgSender(), address(this), subIds[i]);
-            recordSynthesized(tokenId, subTokens[i], subIds[i]);
-        }
+        sContract.transferFrom(_msgSender(), address(this), subId);
+        recordSynthesized(tokenId, subToken, subId);
     }
 
     function separate(uint256 tokenId) public {
@@ -61,19 +68,27 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
         SynthesizedToken[] memory subs = getSynthesizedTokens(tokenId);
         require(subs.length > 0, "Metacore: not synthesized token");
         for (uint256 i = 0; i < subs.length; i++) {
-            ISynthetic721(subs[i].token).transferFrom(address(this), subs[i].owner, subs[i].id);
-            if (getSynthesizedTokens(subs[i].id).length > 0) {
-                separate(subs[i].id);
+            if (subs[i].id > 0 && subs[i].owner != address(0)) {
+                ISynthetic721(subs[i].token).transferFrom(address(this), subs[i].owner, subs[i].id);
             }
         }
         delete synthesizedTokens[tokenId];
+    }
+
+    function separateOne(uint256 tokenId, uint256 subId) public {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "Metacore: caller is not token owner nor approved");
+
+        uint idx = _findByValue(synthesizedTokens[tokenId], subId);
+        SynthesizedToken storage token = synthesizedTokens[tokenId][idx];
+        ISynthetic721(token.token).transferFrom(address(this), token.owner, token.id);
+        delete synthesizedTokens[tokenId][idx];
     }
 
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
         string[4] memory parts;
         parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
 
-        parts[1] = string(abi.encodePacked(name(METACORE), ' #', tokenId.toString(), '</text><text x="10" y="40" class="base">'));
+        parts[1] = string(abi.encodePacked('Metacore #', tokenId.toString(), '</text><text x="10" y="40" class="base">'));
 
         parts[2] = getImageText(0, tokenId, 40);
 
@@ -88,7 +103,7 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
             attributes = string(abi.encodePacked(attributes, ',{"trait_type":"SYNTHETIC","value":"false"}'));
         }
 
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', name(METACORE), ' #', tokenId.toString(), '", "description": "MetaCore is an identity system which can make all metaverse citizens join into different metaverses by using same MetaCore Identity. The first modular NFT with MetaCore at its core, with arbitrary attributes addition and removal, freely combine and divide each components. Already adapted to multiple metaverse blockchain games. FUTURE IS COMMING", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', name(METANAME), ' #', tokenId.toString(), '", "description": "MetaCore is an identity system which can make all metaverse citizens join into different metaverses by using same MetaCore Identity. The first modular NFT with MetaCore at its core, with arbitrary attributes addition and removal, freely combine and divide each components. Already adapted to multiple metaverse blockchain games. FUTURE IS COMMING", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '","attributes":[', attributes, ']}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
         return output;
     }
@@ -96,14 +111,14 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
     function getImageText(uint256 mainId, uint256 subId, uint256 pos) public view returns (string memory) {
         bytes memory text;
         if (_exists(subId) && mainId == 0) {
-            text = textOf(subId, METACORE);
+            text = textOf(subId, METANAME);
         } else {
-            string[] memory subTexts = ISynthetic721(subTokens[subId][mainId]).tokenTexts(subId);
-            for (uint i = 0; i < subTexts.length; i++) {
-                uint256 newPos = 20 * (i + 1) + pos;
-                text = abi.encodePacked(text, '</text><text x="10" y="', newPos.toString(), '" class="base">');
-                text = abi.encodePacked(text, subTexts[i]);
-            }
+            //            string[] memory subTexts = ISynthetic721(subTokens[subId][mainId]).tokenTexts(subId);
+            //            for (uint i = 0; i < subTexts.length; i++) {
+            //                uint256 newPos = 20 * (i + 1) + pos;
+            //                text = abi.encodePacked(text, '</text><text x="10" y="', newPos.toString(), '" class="base">');
+            //                text = abi.encodePacked(text, subTexts[i]);
+            //            }
         }
         return string(abi.encodePacked(text, getSubImageText(subId, pos)));
     }
@@ -138,6 +153,14 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
             data = abi.encodePacked(data, getAttributes(tokenId, tokens[i].id));
         }
         return data;
+    }
+
+    function _findByValue(SynthesizedToken[] storage values, uint256 value) internal view returns (uint) {
+        uint i = 0;
+        while (values[i].id != value) {
+            i++;
+        }
+        return i;
     }
 }
 

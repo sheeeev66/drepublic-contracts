@@ -21,14 +21,7 @@ contract ERC3664CrossSynthetic is Context, ERC3664 {
     // subToken => mainToken => address
     mapping(uint256 => mapping(uint256 => address)) public subTokens;
 
-    // Mapping from token ID to approved another token.
-    mapping(uint256 => uint256) private _combineApprovals;
-
     constructor () ERC3664() {}
-
-    //    function isApprovedCombine(uint256 from, uint256 to, uint256 attrId) public view virtual override returns (bool) {
-    //        return _allowances[attrId][from] == to;
-    //    }
 
     function recordSynthesized(
         uint256 tokenId,
@@ -68,9 +61,4 @@ contract ERC3664CrossSynthetic is Context, ERC3664 {
         }
         return data;
     }
-
-    //
-    //    function approveCombine(uint256 from, uint256 to, uint256 attrId) public virtual override {}
-    //
-    //    function combineFrom(uint256 from, uint256 to, uint256 attrId) public virtual override {}
 }

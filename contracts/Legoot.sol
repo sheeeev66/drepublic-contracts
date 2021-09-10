@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "openzeppelin-solidity/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
-//import "./Synthetic/ISynthetic.sol";
+import "./Synthetic/ISynthetic.sol";
 import "./ERC3664/ERC3664.sol";
 
 interface ILoot {
@@ -50,7 +50,7 @@ interface ILootData {
     function getNameSuffixes() external view returns (string[] memory);
 }
 
-contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
+contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
 
     // mainnet
@@ -128,14 +128,18 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
         uint256 tokenId,
         uint256[] calldata subIds
     ) public {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "Legoot: caller is not token owner nor approved");
+        require(ownerOf(tokenId) == _msgSender(), "Legoot: caller is not token owner");
         require(primaryAttributeOf(tokenId) == LEGOOT_NFT, "Legoot: only support legoot combine");
 
-        for (uint256 i = 0; i < subIds.length; i++) {
-            require(getApproved(subIds[i]) == address(this), "Legoot: caller is not sub token owner nor approved");
-            require(primaryAttributeOf(subIds[i]) != LEGOOT_NFT, "Legoot: not support combine between legoots");
-
-            transferFrom(_msgSender(), address(this), subIds[i]);
+        for (uint i = 0; i < subIds.length; i++) {
+            require(ownerOf(subIds[i]) == _msgSender(), "Legoot: caller is not sub token owner");
+            uint256 nft_attr = primaryAttributeOf(subIds[i]);
+            require(nft_attr != LEGOOT_NFT, "Legoot: not support combine between legoots");
+            for (uint j = 0; j < synthesizedTokens[tokenId].length; j ++) {
+                uint256 id = synthesizedTokens[tokenId][j].id;
+                require(nft_attr != primaryAttributeOf(id), "Legoot: duplicate sub token type");
+            }
+            _transfer(_msgSender(), address(this), subIds[i]);
             _recordSynthesized(_msgSender(), tokenId, subIds[i]);
         }
     }
@@ -200,7 +204,11 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
         return string(text);
     }
 
-    function tokenText(uint256 tokenId, bool prefix) public view virtual returns (string memory) {
+    function tokenTexts(uint256 tokenId) public view virtual override returns (string memory) {
+        return tokenText(tokenId, false);
+    }
+
+    function tokenText(uint256 tokenId, bool prefix) internal view returns (string memory) {
         uint256 nft_id = primaryAttributeOf(tokenId);
         string memory text = "";
         if (nft_id == WEAPON_NFT) {
@@ -236,7 +244,7 @@ contract Legoot is ERC3664, ERC721Enumerable, ReentrancyGuard, Ownable {
         return string(data);
     }
 
-    function tokenAttributes(uint256 tokenId) public view virtual returns (string memory) {
+    function tokenAttributes(uint256 tokenId) public view virtual override returns (string memory) {
         string memory text = tokenText(tokenId, false);
         if (bytes(text).length == 0) {
             return "";
