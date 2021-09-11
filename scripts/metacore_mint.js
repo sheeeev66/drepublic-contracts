@@ -11,9 +11,9 @@ const rinkebyNetwork = "https://rinkeby.infura.io/v3/8355dcd582884501bae9d5bda7b
 const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
 
 // testnet
-const metacoreAddress = "0xC37b106c106Ae7A177f43fe08aABEC447E510E23";
+const metacoreAddress = "0x782f03cef839083c5db38f2ccb4de15d212db70a";
 
-const legootAddress = "0xdc2aF6a69A3D3d5F90120FBA1fea87fcf2A4990D";
+const legootAddress = "0x0927C6A8A35b1A62531fEB8D5eFbEF23a09F39a1";
 
 // mainnet
 // const metacoreAddress = "0xe98d61D06078993c0cB59Ad3021e1c782dBEe26A";
@@ -34,9 +34,9 @@ async function main() {
         {gasLimit: "5500000"}
     );
 
-    const meatcoreId = 2;
-    const legootId = 20;
-    const legootId2 = 21;
+    const meatcoreId = 1;
+    const legootId = 10;
+    const legootId2 = 11;
 
     console.log("claim Metacore result: ", await metacoreInstance.methods.claim("DRepublic").send({from: caller}));
 

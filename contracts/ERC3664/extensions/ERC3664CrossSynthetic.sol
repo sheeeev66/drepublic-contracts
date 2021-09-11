@@ -36,7 +36,7 @@ contract ERC3664CrossSynthetic is Context, ERC3664 {
         return synthesizedTokens[tokenId];
     }
 
-    function tokenAttributes(uint256 tokenId) internal view returns (string memory) {
+    function tokenAttributes(uint256 tokenId) public view returns (string memory) {
         bytes memory data = "";
         uint256[] memory attrs = attributesOf(tokenId);
         for (uint i = 0; i < attrs.length; i++) {
@@ -50,7 +50,7 @@ contract ERC3664CrossSynthetic is Context, ERC3664 {
         return string(data);
     }
 
-    function getSubAttributes(uint256 tokenId) internal view returns (bytes memory) {
+    function getSubAttributes(uint256 tokenId) public view returns (bytes memory) {
         bytes memory data = "";
         SynthesizedToken[] memory sTokens = synthesizedTokens[tokenId];
         for (uint i = 0; i < sTokens.length; i++) {

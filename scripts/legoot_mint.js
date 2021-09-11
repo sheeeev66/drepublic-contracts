@@ -12,7 +12,7 @@ const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
 
 // const lootdataAddress = "0x283D93B97b0923c833374c6401eF74B837B64cAf";
 
-const legootAddress = "0xdc2aF6a69A3D3d5F90120FBA1fea87fcf2A4990D";
+const legootAddress = "0x0927C6A8A35b1A62531fEB8D5eFbEF23a09F39a1";
 
 // mainnet
 // const legootAddress = "0xe98d61D06078993c0cB59Ad3021e1c782dBEe26A";

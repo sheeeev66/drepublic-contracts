@@ -10,20 +10,26 @@ import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 import "./ERC3664/extensions/ERC3664CrossSynthetic.sol";
 import "./Synthetic/ISynthetic721.sol";
 
+interface ICustomMetadata {
+    function tokenURI(uint256 tokenId) external view returns (string memory);
+}
+
 contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
     using SafeMath for uint256;
 
-    uint256 private _curTokenId = 0;
+    uint256 private constant METANAME = 1;
 
     uint256 private _totalSupply = 8000;
 
+    uint256 private _curTokenId = 0;
+
     mapping(address => bool) private _authNFTs;
 
-    uint256 public constant METANAME = 1;
+    address private _customURI = address(0);
 
     constructor() ERC3664CrossSynthetic() ERC721("Metacore Identity System", "Metacore") Ownable() {
-        _authNFTs[0xdc2aF6a69A3D3d5F90120FBA1fea87fcf2A4990D] = true;
+        _authNFTs[0x0927C6A8A35b1A62531fEB8D5eFbEF23a09F39a1] = true;
         _mint(METANAME, "Metaname", "MetaName", "");
     }
 
@@ -33,6 +39,10 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
 
     function increaseIssue(uint256 supply) public onlyOwner {
         _totalSupply = supply;
+    }
+
+    function setCustomMetadata(address uri) public onlyOwner {
+        _customURI = uri;
     }
 
     function setAuthNFTs(address nft, bool enable) public onlyOwner {
@@ -85,6 +95,13 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
     }
 
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
+        if (_customURI != address(0)) {
+            return ICustomMetadata(_customURI).tokenURI(tokenId);
+        }
+        return coreTokenURI(tokenId);
+    }
+
+    function coreTokenURI(uint256 tokenId) public view returns (string memory) {
         string[4] memory parts;
         parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
 

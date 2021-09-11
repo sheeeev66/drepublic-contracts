@@ -71,9 +71,7 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
 
     string private _name = "Legoot";
 
-    uint256 public _totalSupply;
-    uint256 public _startId;
-    uint256 public _reserved;
+    uint256 public _totalSupply = 8000;
 
     struct SynthesizedToken {
         address owner;
@@ -84,10 +82,6 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
     mapping(uint256 => SynthesizedToken[]) public synthesizedTokens;
 
     constructor() ERC721("Legoot", "LEGO") Ownable() {
-        _totalSupply = 8000;
-        _startId = 0;
-        _reserved = 200;
-
         _mint(LEGOOT_NFT, "LEGOOT", "legoot", "");
         _mint(WEAPON_NFT, "WEAPON", "weapon", "");
         _mint(CHEST_NFT, "CHEST", "chest", "");
@@ -103,12 +97,6 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         return _name;
     }
 
-    function increaseIssue(uint256 supply, uint256 startId, uint256 reserved) public onlyOwner {
-        _totalSupply = supply;
-        _startId = startId;
-        _reserved = reserved;
-    }
-
     function getSubTokens(uint256 tokenId) public view returns (uint256[] memory){
         SynthesizedToken[] memory tokens = synthesizedTokens[tokenId];
         uint256[] memory subs = new uint256[](tokens.length);
@@ -119,14 +107,14 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
     }
 
     function claim(uint256 tokenId) public nonReentrant {
-        require(tokenId > _startId && tokenId <= _startId + _totalSupply - _reserved, "Token ID invalid");
-        _mint(_msgSender(), tokenId);
+        require(tokenId > 0 && tokenId < 7778, "Token ID invalid");
+        _safeMint(_msgSender(), tokenId);
         _afterTokenMint(tokenId);
     }
 
     function ownerClaim(uint256 tokenId) public nonReentrant onlyOwner {
-        require(tokenId > _startId + _totalSupply - _reserved && tokenId <= _startId + _totalSupply, "Token ID invalid");
-        _mint(owner(), tokenId);
+        require(tokenId > 7777 && tokenId < 8001, "Token ID invalid");
+        _safeMint(owner(), tokenId);
         _afterTokenMint(tokenId);
     }
 
