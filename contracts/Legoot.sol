@@ -163,10 +163,12 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
     }
 
     function _beforeTokenTransfer(
-        address /*from*/,
+        address from,
         address to,
         uint256 tokenId
     ) internal virtual override {
+        super._beforeTokenTransfer(from, to, tokenId);
+
         if (primaryAttributeOf(tokenId) == LEGOOT_NFT) {
             SynthesizedToken[] storage subs = synthesizedTokens[tokenId];
             for (uint256 i = 0; i < subs.length; i++) {

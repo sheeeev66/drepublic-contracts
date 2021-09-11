@@ -38,6 +38,10 @@ contract ERC3664CrossSynthetic is Context, ERC3664 {
 
     function tokenAttributes(uint256 tokenId) public view returns (string memory) {
         bytes memory data = "";
+        uint256 id = primaryAttributeOf(tokenId);
+        if (id > 0) {
+            data = abi.encodePacked('{"trait_type":"', symbol(id), '","value":"', textOf(tokenId, id), '"}');
+        }
         uint256[] memory attrs = attributesOf(tokenId);
         for (uint i = 0; i < attrs.length; i++) {
             if (data.length > 0) {
