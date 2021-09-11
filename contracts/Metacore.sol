@@ -23,7 +23,7 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
     uint256 public constant METANAME = 1;
 
     constructor() ERC3664CrossSynthetic() ERC721("Metacore Identity System", "Metacore") Ownable() {
-        _authNFTs[0x819766088b2e8Bd418071F89607BaB722fD0A606] = true;
+        _authNFTs[0xdc2aF6a69A3D3d5F90120FBA1fea87fcf2A4990D] = true;
         _mint(METANAME, "Metaname", "MetaName", "");
     }
 
@@ -110,7 +110,9 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
         bytes memory data = bytes(super.tokenAttributes(tokenId));
         SynthesizedToken[] memory tokens = synthesizedTokens[tokenId];
         for (uint i = 0; i < tokens.length; i++) {
-            data = abi.encodePacked(data, ',', _concatAttribute(ISynthetic721(tokens[i].token).coreName(), tokens[i].id.toString()));
+            if (tokens[i].id > 0) {
+                data = abi.encodePacked(data, ',', _concatAttribute(ISynthetic721(tokens[i].token).coreName(), tokens[i].id.toString()));
+            }
         }
         return string(data);
     }

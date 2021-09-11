@@ -9,8 +9,9 @@ const Legoot = artifacts.require("../contracts/Legoot.sol");
 const LootData = artifacts.require("../contracts/LootData.sol");
 
 module.exports = async (deployer) => {
-    // await deployer.deploy(Metacore);
-    await deployer.deploy(Legoot);
+    await deployer.deploy(Metacore);
+    // await deployer.deploy(Legoot);
+    // await deployer.deploy(LootData);
 
     // await deployer.deploy(ERC3664Generic);
     // await deployer.deploy(NFTFactory, "DRepublic NFT", "DRPC", "https://www.cradles.io/dragontar/");

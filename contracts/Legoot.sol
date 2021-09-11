@@ -174,6 +174,21 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         delete synthesizedTokens[tokenId][idx];
     }
 
+    function _beforeTokenTransfer(
+        address /*from*/,
+        address to,
+        uint256 tokenId
+    ) internal virtual override {
+        if (primaryAttributeOf(tokenId) == LEGOOT_NFT) {
+            SynthesizedToken[] storage subs = synthesizedTokens[tokenId];
+            for (uint256 i = 0; i < subs.length; i++) {
+                if (subs[i].id > 0) {
+                    subs[i].owner = to;
+                }
+            }
+        }
+    }
+
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
         string[4] memory parts;
         parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
@@ -203,9 +218,11 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         }
         SynthesizedToken[] memory tokens = synthesizedTokens[tokenId];
         for (uint i = 0; i < tokens.length; i++) {
-            uint256 newPos = 20 * (i + 1) + pos;
-            text = abi.encodePacked(text, '</text><text x="10" y="', newPos.toString(), '" class="base">');
-            text = abi.encodePacked(text, tokenText(tokens[i].id, true));
+            if (tokens[i].id > 0) {
+                pos += 20;
+                text = abi.encodePacked(text, '</text><text x="10" y="', pos.toString(), '" class="base">');
+                text = abi.encodePacked(text, tokenText(tokens[i].id, true));
+            }
         }
         return string(text);
     }
@@ -241,10 +258,12 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         bytes memory data = bytes(tokenAttributes(tokenId));
         SynthesizedToken[] memory tokens = synthesizedTokens[tokenId];
         for (uint i = 0; i < tokens.length; i++) {
-            if (data.length > 0) {
-                data = abi.encodePacked(data, ',', tokenAttributes(tokens[i].id));
-            } else {
-                data = bytes(tokenAttributes(tokens[i].id));
+            if (tokens[i].id > 0) {
+                if (data.length > 0) {
+                    data = abi.encodePacked(data, ',', tokenAttributes(tokens[i].id));
+                } else {
+                    data = bytes(tokenAttributes(tokens[i].id));
+                }
             }
         }
         return string(data);
