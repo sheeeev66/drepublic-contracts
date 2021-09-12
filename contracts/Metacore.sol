@@ -14,6 +14,10 @@ interface ICustomMetadata {
     function tokenURI(uint256 tokenId) external view returns (string memory);
 }
 
+interface ICoreRegistry {
+    function verifyIdentity(address token, uint256 tokenId) external view returns (bool);
+}
+
 contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
 
@@ -25,10 +29,12 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
 
     address private _customURI;
 
+    address private _registry;
+
     mapping(address => bool) private _authNFTs;
 
     constructor() ERC3664CrossSynthetic() ERC721("Metacore Identity System", "Metacore") Ownable() {
-        _authNFTs[0xF6E2c048D8F63cf61B1833Fb6e506e28FAD0AE49] = true;
+        _authNFTs[address(0x94c7c0d6B784E781187b189050eb6061E8Fb7Ae0)] = true;
         _mint(METANAME, "Metaname", "Metaname", "");
     }
 
@@ -42,6 +48,10 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
 
     function setCustomMetadata(address uri) public onlyOwner {
         _customURI = uri;
+    }
+
+    function setCoreRegistry(address registry) public onlyOwner {
+        _registry = registry;
     }
 
     function setAuthNFTs(address nft, bool enable) public onlyOwner {
@@ -63,7 +73,12 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
         uint256 subId
     ) public {
         require(ownerOf(tokenId) == _msgSender(), "Metacore: caller is not token owner");
-        require(_authNFTs[subToken], "Metacore: invalid nft address");
+        if (_registry != address(0)) {
+            require(ICoreRegistry(_registry).verifyIdentity(subToken, subId), "Metacore: unregister token address;");
+        } else {
+            require(_authNFTs[subToken], "Metacore: invalid nft address");
+        }
+
         ISynthetic721 sContract = ISynthetic721(subToken);
         require(sContract.getApproved(subId) == address(this),
             "Metacore: caller is not sub token owner nor approved");
@@ -155,5 +170,15 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
             values[i] = values[i + 1];
         }
         values.pop();
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC3664, ERC721Enumerable)
+    returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 }

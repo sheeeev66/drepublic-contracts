@@ -76,16 +76,16 @@ contract ERC3664Generic is Context, AccessControlEnumerable, ERC3664 {
         super.batchAttach(tokenId, attrIds, amounts, texts);
     }
 
-    //    /**
-    //     * @dev See {IERC165-supportsInterface}.
-    //     */
-    //    function supportsInterface(bytes4 interfaceId)
-    //    public
-    //    view
-    //    virtual
-    //    override(AccessControlEnumerable, ERC3664)
-    //    returns (bool)
-    //    {
-    //        return super.supportsInterface(interfaceId);
-    //    }
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(AccessControlEnumerable, ERC3664)
+    returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
 }

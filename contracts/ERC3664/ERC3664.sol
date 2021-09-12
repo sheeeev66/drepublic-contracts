@@ -4,11 +4,11 @@ pragma solidity ^0.8.0;
 
 import "openzeppelin-solidity/contracts/utils/Context.sol";
 import "openzeppelin-solidity/contracts/utils/Strings.sol";
-//import "openzeppelin-solidity/contracts/utils/introspection/ERC165.sol";
+import "openzeppelin-solidity/contracts/utils/introspection/ERC165.sol";
 import "./IERC3664.sol";
 import "./extensions/IERC3664Metadata.sol";
 
-contract ERC3664 is Context, IERC3664, IERC3664Metadata {
+contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
     using Strings for uint256;
 
     struct AttrMetadata {
@@ -31,15 +31,15 @@ contract ERC3664 is Context, IERC3664, IERC3664Metadata {
 
     constructor () {}
 
-    //    /**
-    //     * @dev See {IERC165-supportsInterface}.
-    //     */
-    //    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
-    //        return
-    //        interfaceId == type(IERC3664).interfaceId ||
-    //        interfaceId == type(IERC3664Metadata).interfaceId ||
-    //        super.supportsInterface(interfaceId);
-    //    }
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
+        return
+        interfaceId == type(IERC3664).interfaceId ||
+        interfaceId == type(IERC3664Metadata).interfaceId ||
+        super.supportsInterface(interfaceId);
+    }
 
     /**
      * @dev See {IERC3664Metadata-name}.

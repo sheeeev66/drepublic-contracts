@@ -7,7 +7,7 @@ import "../ERC3664.sol";
 /**
  * @dev Implementation of the {ERC3664CrossSynthetic} interface.
  */
-contract ERC3664CrossSynthetic is ERC3664 {
+abstract contract ERC3664CrossSynthetic is ERC3664 {
     struct SynthesizedToken {
         address token;
         address owner;

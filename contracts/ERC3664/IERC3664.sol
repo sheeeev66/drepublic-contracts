@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.0;
 
-//import "openzeppelin-solidity/contracts/utils/introspection/IERC165.sol";
+import "openzeppelin-solidity/contracts/utils/introspection/IERC165.sol";
 
-interface IERC3664 {
+interface IERC3664 is IERC165 {
     /**
      * @dev Emitted when new attribute type `attrId` are minted.
      */

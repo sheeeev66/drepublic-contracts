@@ -426,4 +426,14 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
     function random(string memory input) internal pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(input)));
     }
+
+    function supportsInterface(bytes4 interfaceId)
+    public
+    view
+    virtual
+    override(ERC3664, ERC721Enumerable)
+    returns (bool)
+    {
+        return interfaceId == type(ISynthetic).interfaceId || super.supportsInterface(interfaceId);
+    }
 }

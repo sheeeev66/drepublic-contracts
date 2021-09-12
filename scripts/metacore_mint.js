@@ -11,9 +11,9 @@ const rinkebyNetwork = "https://rinkeby.infura.io/v3/8355dcd582884501bae9d5bda7b
 const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
 
 // testnet
-const metacoreAddress = "0xaA28dD7C5113cca177C6d72C198325B8AaB7D537";
+const metacoreAddress = "0x287B885C247c506c68eA9bcBf752C9E406847452";
 
-const legootAddress = "0xF6E2c048D8F63cf61B1833Fb6e506e28FAD0AE49";
+const legootAddress = "0x94c7c0d6B784E781187b189050eb6061E8Fb7Ae0";
 
 // mainnet
 // const metacoreAddress = "0xe98d61D06078993c0cB59Ad3021e1c782dBEe26A";
