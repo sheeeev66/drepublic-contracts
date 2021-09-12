@@ -34,7 +34,7 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
     mapping(address => bool) private _authNFTs;
 
     constructor() ERC3664CrossSynthetic() ERC721("Metacore Identity System", "Metacore") Ownable() {
-        _authNFTs[address(0xafA14055Ec31030c6b093fbFe1188c0a3638ec55)] = true;
+        _authNFTs[address(0x0F5ED2fbc6B4b43b51d57bc4016B4Cb83964F873)] = true;
         _mint(METANAME, "Metaname", "Metaname", "");
     }
 

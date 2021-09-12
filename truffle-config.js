@@ -1,38 +1,55 @@
-const HDWalletProvider = require('truffle-hdwallet-provider');
+require('babel-register')
+require('babel-polyfill')
+
+const chai = require('chai')
+const chaiAsPromised = require('chai-as-promised')
+chai.use(chaiAsPromised).should()
+
+var HDWalletProvider = require('@truffle/hdwallet-provider');
 
 const fs = require('fs');
 const mnemonic = fs.readFileSync(".secret").toString().trim();
 
-module.exports = {
-    /**
-     * Networks define how you connect to your ethereum client and let you set the
-     * defaults web3 uses to send transactions. If you don't specify one truffle
-     * will spin up a development blockchain for you on port 9545 when you
-     * run `develop` or `test`. You can ask a truffle command to use a specific
-     * network from the command line, e.g
-     *
-     * $ truffle test --network <network-name>
-     */
+const INFURA_API_KEY = process.env.INFURA_API_KEY
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY
 
+module.exports = {
     networks: {
+        development: {
+            host: 'localhost',
+            port: 8545,
+            network_id: '*',
+            skipDryRun: true,
+            gas: 7000000
+        },
         rinkeby: {
-            provider: () => new HDWalletProvider(mnemonic,
-                'https://rinkeby.infura.io/v3/8355dcd582884501bae9d5bda7ba8ecd'),
-            gas: 8000000,
+            provider: () =>
+                new HDWalletProvider(
+                    mnemonic,
+                    `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`
+                ),
             network_id: 4,
+            gas: 8000000,
             skipDryRun: true
         },
-        Mumbai: {
-            provider: () => new HDWalletProvider(mnemonic,
-                'https://heimdall.api.matic.today'),
-            gas: 6000000,
-            network_id: 80001
+        matic: {
+            provider: () =>
+                new HDWalletProvider(
+                    mnemonic,
+                    `https://polygon-mainnet.infura.io/v3/${INFURA_API_KEY}`
+                ),
+            network_id: '137',
+            gasPrice: '90000000000'
         },
-        Polygon: {
-            provider: () => new HDWalletProvider(mnemonic,
-                'https://heimdall.api.matic.network'),
-            gas: 6000000,
-            network_id: 137
+        mumbai: {
+            provider: () =>
+                new HDWalletProvider(
+                    mnemonic,
+                    `https://polygon-mumbai.infura.io/v3/${INFURA_API_KEY}`
+                ),
+            network_id: 80001,
+            gas: 8000000,
+            skipDryRun: true
         },
         bsclive: {
             provider: () => new HDWalletProvider(mnemonic,
@@ -48,12 +65,6 @@ module.exports = {
             network_id: '97',
             gas: 5500000
         },
-        //
-        // development: {
-        //  host: "127.0.0.1",     // Localhost (default: none)
-        //  port: 8545,            // Standard Ethereum port (default: none)
-        //  network_id: "*",       // Any network (default: none)
-        // },
         // Another network with more advanced options...
         // advanced: {
         // port: 8777,             // Custom port
@@ -63,22 +74,6 @@ module.exports = {
         // from: <address>,        // Account to send txs from (default: accounts[0])
         // websocket: true        // Enable EventEmitter interface for web3 (default: false)
         // },
-        // Useful for deploying to a public network.
-        // NB: It's important to wrap the provider as a function.
-        // ropsten: {
-        // provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/YOUR-PROJECT-ID`),
-        // network_id: 3,       // Ropsten's id
-        // gas: 5500000,        // Ropsten has a lower block limit than mainnet
-        // confirmations: 2,    // # of confs to wait between deployments. (default: 0)
-        // timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
-        // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
-        // },
-        // Useful for private networks
-        // private: {
-        // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),
-        // network_id: 2111,   // This network is yours, in the cloud.
-        // production: true    // Treats this network as if it was a public net. (default: false)
-        // }
     },
 
     // Set default mocha options here, use special reporters etc.
@@ -104,23 +99,11 @@ module.exports = {
             }
         }
     },
-
-    // Truffle DB is currently disabled by default; to enable it, change enabled: false to enabled: true
-    //
-    // Note: if you migrated your contracts prior to enabling this field in your Truffle project and want
-    // those previously migrated contracts available in the .db directory, you will need to run the following:
-    // $ truffle migrate --reset --compile-all
-
-    db: {
-        enabled: false
+    plugins: ['truffle-plugin-verify'],
+    verify: {
+        preamble: 'Matic network contracts'
     },
-    plugins: [
-        'truffle-plugin-verify'
-    ],
     api_keys: {
-        // BSC
-        // etherscan: 'DVJKJKFWWZKIMXBTFZZTY462GVBAR5QJ58'
-        // ETH
-        etherscan: 'NFPU2RAUIHMD2IUZ1AWMDJEU7B2XHPBKD6'
+        etherscan: ETHERSCAN_API_KEY
     }
 };

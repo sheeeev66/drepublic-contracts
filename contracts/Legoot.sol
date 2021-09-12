@@ -3,9 +3,9 @@
 pragma solidity ^0.8.0;
 
 import "openzeppelin-solidity/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
-import "openzeppelin-solidity/contracts/utils/Address.sol";
 import "./Synthetic/ISynthetic.sol";
 import "./ERC3664/ERC3664.sol";
 import "./utils/Base64.sol";
@@ -55,11 +55,18 @@ interface ILootData {
 contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
 
-    // mainnet
+    // ethereum mainnet
     //address public constant LOOT = 0xff9c1b15b16263c61d017ee9f65c50e4ae0113d7;
     // rinkeby
-    address public constant LOOT = 0x5C44B86e21f49cA7e66BB2381D3acD1004E4a1A2;
-    address public constant LOOTDATA = 0x283D93B97b0923c833374c6401eF74B837B64cAf;
+    //address public constant LOOT = 0x5C44B86e21f49cA7e66BB2381D3acD1004E4a1A2;
+    //address public constant LOOTDATA = 0x283D93B97b0923c833374c6401eF74B837B64cAf;
+    // polygon
+    //address public constant WETH = 0x7ceb23fd6bc0add59e62ac25578270cff1b9f619;
+    // mumbai
+    address public constant LOOT = 0x349aD102fD10bB5F22634373809964C575C2Bb95;
+    address public constant LOOTDATA = 0x4CF659eA4CB55502C5F8225172EEdc72A9542733;
+    // mock
+    address public constant WETH = 0x1D190851714fA20af51715FdD2E5ee5CfAB6fC17;
 
     uint256 public constant LEGOOT_NFT = 1;
     uint256 public constant WEAPON_NFT = 2;
@@ -75,7 +82,7 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
 
     uint256 public _totalSupply = 8000;
 
-    address payable public treasury = payable(0x99F120C4BA7d3621e26429Cba45A6F52b23DFd1F);
+    address public treasury = 0x99F120C4BA7d3621e26429Cba45A6F52b23DFd1F;
 
     struct SynthesizedToken {
         address owner;
@@ -112,11 +119,11 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         return subs;
     }
 
-    function claim(uint256 tokenId) public payable nonReentrant {
+    function claim(uint256 tokenId) public nonReentrant {
         require(tokenId > 0 && tokenId < 7778, "Token ID invalid");
-        uint256 amount = msg.value;
+        uint256 amount = IERC20(WETH).allowance(_msgSender(), address(this));
         require(amount >= 3 * 10 ** 16, "Payed too low value");
-        Address.sendValue(treasury, amount);
+        IERC20(WETH).transferFrom(_msgSender(), treasury, 3 * 10 ** 16);
         _safeMint(_msgSender(), tokenId);
         _afterTokenMint(tokenId);
         emit Claimed(treasury, amount, tokenId);
