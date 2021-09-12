@@ -2,13 +2,12 @@
 
 pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/utils/Context.sol";
 import "../ERC3664.sol";
 
 /**
- * @dev Implementation of the {ERC3664Synthetic} interface.
+ * @dev Implementation of the {ERC3664CrossSynthetic} interface.
  */
-contract ERC3664CrossSynthetic is Context, ERC3664 {
+contract ERC3664CrossSynthetic is ERC3664 {
     struct SynthesizedToken {
         address token;
         address owner;
@@ -18,19 +17,7 @@ contract ERC3664CrossSynthetic is Context, ERC3664 {
     // mainToken => SynthesizedToken
     mapping(uint256 => SynthesizedToken[]) public synthesizedTokens;
 
-    // subToken => mainToken => address
-    mapping(uint256 => mapping(uint256 => address)) public subTokens;
-
     constructor () ERC3664() {}
-
-    function recordSynthesized(
-        uint256 tokenId,
-        address subToken,
-        uint256 subId
-    ) public {
-        synthesizedTokens[tokenId].push(SynthesizedToken(subToken, _msgSender(), subId));
-        subTokens[subId][tokenId] = subToken;
-    }
 
     function getSynthesizedTokens(uint256 tokenId) public view returns (SynthesizedToken[] memory) {
         return synthesizedTokens[tokenId];
@@ -43,7 +30,7 @@ contract ERC3664CrossSynthetic is Context, ERC3664 {
             data = abi.encodePacked('{"trait_type":"', symbol(id), '","value":"', textOf(tokenId, id), '"}');
         }
         uint256[] memory attrs = attributesOf(tokenId);
-        for (uint i = 0; i < attrs.length; i++) {
+        for (uint256 i = 0; i < attrs.length; i++) {
             if (data.length > 0) {
                 data = abi.encodePacked(data, ',');
             }
@@ -56,8 +43,8 @@ contract ERC3664CrossSynthetic is Context, ERC3664 {
 
     function getSubAttributes(uint256 tokenId) public view returns (bytes memory) {
         bytes memory data = "";
-        SynthesizedToken[] memory sTokens = synthesizedTokens[tokenId];
-        for (uint i = 0; i < sTokens.length; i++) {
+        SynthesizedToken[] storage sTokens = synthesizedTokens[tokenId];
+        for (uint256 i = 0; i < sTokens.length; i++) {
             if (data.length > 0) {
                 data = abi.encodePacked(data, ',');
             }

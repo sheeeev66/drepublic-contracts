@@ -2,14 +2,13 @@
 
 pragma solidity ^0.8.0;
 
-//import "openzeppelin-solidity/contracts/utils/Context.sol";
+import "openzeppelin-solidity/contracts/utils/Context.sol";
 import "openzeppelin-solidity/contracts/utils/Strings.sol";
 //import "openzeppelin-solidity/contracts/utils/introspection/ERC165.sol";
 import "./IERC3664.sol";
 import "./extensions/IERC3664Metadata.sol";
 
-
-contract ERC3664 is IERC3664, IERC3664Metadata {
+contract ERC3664 is Context, IERC3664, IERC3664Metadata {
     using Strings for uint256;
 
     struct AttrMetadata {
@@ -75,7 +74,7 @@ contract ERC3664 is IERC3664, IERC3664Metadata {
         }
     }
 
-    function primaryAttributeOf(uint256 tokenId) public view virtual returns (uint256) {
+    function primaryAttributeOf(uint256 tokenId) public view virtual override returns (uint256) {
         return primaryAttrs[tokenId];
     }
 
@@ -130,7 +129,7 @@ contract ERC3664 is IERC3664, IERC3664Metadata {
     ) public virtual override {
         require(_attrExists(attrId), "ERC3664: attach for nonexistent attribute");
 
-        address operator = msg.sender;
+        address operator = _msgSender();
 
         _beforeAttrTransfer(operator, 0, tokenId, _asSingletonArray(attrId), _asSingletonArray(amount), "");
 
@@ -160,7 +159,7 @@ contract ERC3664 is IERC3664, IERC3664Metadata {
         uint256[] calldata amounts,
         bytes[] calldata texts
     ) public virtual override {
-        address operator = msg.sender;
+        address operator = _msgSender();
 
         _beforeAttrTransfer(operator, 0, tokenId, attrIds, amounts, "");
 
@@ -194,7 +193,7 @@ contract ERC3664 is IERC3664, IERC3664Metadata {
     ) internal virtual {
         require(!_attrExists(attrId), "ERC3664: attribute already exists");
 
-        address operator = msg.sender;
+        address operator = _msgSender();
 
         AttrMetadata memory data = AttrMetadata(_name, _symbol, _uri, true);
         _attrMetadatas[attrId] = data;
@@ -215,7 +214,7 @@ contract ERC3664 is IERC3664, IERC3664Metadata {
         require(names.length == symbols.length, "ERC3664: names and symbols length mismatch");
         require(symbols.length == uris.length, "ERC3664: symbols and uris length mismatch");
 
-        address operator = msg.sender;
+        address operator = _msgSender();
 
         for (uint256 i = 0; i < attrIds.length; i++) {
             require(!_attrExists(attrIds[i]), "ERC3664: attribute already exists");
@@ -235,7 +234,7 @@ contract ERC3664 is IERC3664, IERC3664Metadata {
         uint256 attrId,
         uint256 amount
     ) internal virtual {
-        address operator = msg.sender;
+        address operator = _msgSender();
 
         _beforeAttrTransfer(operator, tokenId, 0, _asSingletonArray(attrId), _asSingletonArray(amount), "");
 
@@ -258,7 +257,7 @@ contract ERC3664 is IERC3664, IERC3664Metadata {
     ) internal virtual {
         require(attrIds.length == amounts.length, "ERC3664: attrIds and amounts length mismatch");
 
-        address operator = msg.sender;
+        address operator = _msgSender();
 
         _beforeAttrTransfer(operator, tokenId, 0, attrIds, amounts, "");
 

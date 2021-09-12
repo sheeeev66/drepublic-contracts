@@ -7,6 +7,7 @@ import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "./Synthetic/ISynthetic.sol";
 import "./ERC3664/ERC3664.sol";
+import "./utils/Base64.sol";
 
 interface ILoot {
     function getWeapon(uint256 tokenId) external view returns (string memory);
@@ -98,9 +99,9 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
     }
 
     function getSubTokens(uint256 tokenId) public view returns (uint256[] memory){
-        SynthesizedToken[] memory tokens = synthesizedTokens[tokenId];
+        SynthesizedToken[] storage tokens = synthesizedTokens[tokenId];
         uint256[] memory subs = new uint256[](tokens.length);
-        for (uint i = 0; i < tokens.length; i++) {
+        for (uint256 i = 0; i < tokens.length; i++) {
             subs[i] = tokens[i].id;
         }
         return subs;
@@ -125,11 +126,11 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         require(ownerOf(tokenId) == _msgSender(), "Legoot: caller is not token owner");
         require(primaryAttributeOf(tokenId) == LEGOOT_NFT, "Legoot: only support legoot combine");
 
-        for (uint i = 0; i < subIds.length; i++) {
+        for (uint256 i = 0; i < subIds.length; i++) {
             require(ownerOf(subIds[i]) == _msgSender(), "Legoot: caller is not sub token owner");
             uint256 nft_attr = primaryAttributeOf(subIds[i]);
             require(nft_attr != LEGOOT_NFT, "Legoot: not support combine between legoots");
-            for (uint j = 0; j < synthesizedTokens[tokenId].length; j ++) {
+            for (uint256 j = 0; j < synthesizedTokens[tokenId].length; j ++) {
                 uint256 id = synthesizedTokens[tokenId][j].id;
                 require(nft_attr != primaryAttributeOf(id), "Legoot: duplicate sub token type");
             }
@@ -156,7 +157,7 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Legoot: caller is not token owner nor approved");
         require(primaryAttributeOf(tokenId) == LEGOOT_NFT, "Legoot: only support legoot separate");
 
-        uint idx = _findByValue(synthesizedTokens[tokenId], subId);
+        uint256 idx = _findByValue(synthesizedTokens[tokenId], subId);
         SynthesizedToken storage token = synthesizedTokens[tokenId][idx];
         _transfer(address(this), token.owner, token.id);
         delete synthesizedTokens[tokenId][idx];
@@ -206,8 +207,8 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
             pos += 20;
             text = abi.encodePacked('</text><text x="10" y="', pos.toString(), '" class="base">', text);
         }
-        SynthesizedToken[] memory tokens = synthesizedTokens[tokenId];
-        for (uint i = 0; i < tokens.length; i++) {
+        SynthesizedToken[] storage tokens = synthesizedTokens[tokenId];
+        for (uint256 i = 0; i < tokens.length; i++) {
             if (tokens[i].id > 0) {
                 pos += 20;
                 text = abi.encodePacked(text, '</text><text x="10" y="', pos.toString(), '" class="base">');
@@ -246,8 +247,8 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
 
     function getAttributes(uint256 tokenId) public view returns (string memory) {
         bytes memory data = bytes(tokenAttributes(tokenId));
-        SynthesizedToken[] memory tokens = synthesizedTokens[tokenId];
-        for (uint i = 0; i < tokens.length; i++) {
+        SynthesizedToken[] storage tokens = synthesizedTokens[tokenId];
+        for (uint256 i = 0; i < tokens.length; i++) {
             if (tokens[i].id > 0) {
                 if (data.length > 0) {
                     data = abi.encodePacked(data, ',', tokenAttributes(tokens[i].id));
@@ -411,8 +412,8 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         return abi.encodePacked('{"trait_type":"', keyPrefix, ' ', key, '","value":"', value, '"}');
     }
 
-    function _findByValue(SynthesizedToken[] storage values, uint256 value) internal view returns (uint) {
-        uint i = 0;
+    function _findByValue(SynthesizedToken[] storage values, uint256 value) internal view returns (uint256) {
+        uint256 i = 0;
         while (values[i].id != value) {
             i++;
         }
@@ -421,66 +422,5 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
 
     function random(string memory input) internal pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(input)));
-    }
-}
-
-/// [MIT License]
-/// @title Base64
-/// @notice Provides a function for encoding some bytes in base64
-/// @author Brecht Devos <brecht@loopring.org>
-library Base64 {
-    bytes internal constant TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-    /// @notice Encodes some bytes to the base64 representation
-    function encode(bytes memory data) internal pure returns (string memory) {
-        uint256 len = data.length;
-        if (len == 0) return "";
-
-        // multiply by 4/3 rounded up
-        uint256 encodedLen = 4 * ((len + 2) / 3);
-
-        // Add some extra buffer at the end
-        bytes memory result = new bytes(encodedLen + 32);
-
-        bytes memory table = TABLE;
-
-        assembly {
-            let tablePtr := add(table, 1)
-            let resultPtr := add(result, 32)
-
-            for {
-                let i := 0
-            } lt(i, len) {
-
-            } {
-                i := add(i, 3)
-                let input := and(mload(add(data, i)), 0xffffff)
-
-                let out := mload(add(tablePtr, and(shr(18, input), 0x3F)))
-                out := shl(8, out)
-                out := add(out, and(mload(add(tablePtr, and(shr(12, input), 0x3F))), 0xFF))
-                out := shl(8, out)
-                out := add(out, and(mload(add(tablePtr, and(shr(6, input), 0x3F))), 0xFF))
-                out := shl(8, out)
-                out := add(out, and(mload(add(tablePtr, and(input, 0x3F))), 0xFF))
-                out := shl(224, out)
-
-                mstore(resultPtr, out)
-
-                resultPtr := add(resultPtr, 4)
-            }
-
-            switch mod(len, 3)
-            case 1 {
-                mstore(sub(resultPtr, 2), shl(240, 0x3d3d))
-            }
-            case 2 {
-                mstore(sub(resultPtr, 1), shl(248, 0x3d))
-            }
-
-            mstore(result, encodedLen)
-        }
-
-        return string(result);
     }
 }

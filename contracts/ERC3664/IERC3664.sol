@@ -51,6 +51,11 @@ interface IERC3664 {
     );
 
     /**
+    * @dev Returns primary attribute type of owned by `tokenId`.
+    */
+    function primaryAttributeOf(uint256 tokenId) external view returns (uint256);
+
+    /**
      * @dev Returns all attribute types of owned by `tokenId`.
      */
     function attributesOf(uint256 tokenId) external view returns (uint256[] memory);
