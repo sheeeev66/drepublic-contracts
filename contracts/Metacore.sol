@@ -34,7 +34,7 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
     mapping(address => bool) private _authNFTs;
 
     constructor() ERC3664CrossSynthetic() ERC721("Metacore Identity System", "Metacore") Ownable() {
-        _authNFTs[address(0x97f74f8668D42E3b4fB08fE4c9aA23dAE4511681)] = true;
+        _authNFTs[address(0xafA14055Ec31030c6b093fbFe1188c0a3638ec55)] = true;
         _mint(METANAME, "Metaname", "Metaname", "");
     }
 
@@ -137,7 +137,18 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
     }
 
     function getAttributes(uint256 tokenId) public view returns (string memory) {
-        bytes memory data = bytes(super.tokenAttributes(tokenId));
+        bytes memory data = "";
+        uint256 id = primaryAttributeOf(tokenId);
+        if (id > 0) {
+            data = abi.encodePacked('{"trait_type":"', symbol(id), '","value":"', textOf(tokenId, id), '"}');
+        }
+        uint256[] memory attrs = attributesOf(tokenId);
+        for (uint256 i = 0; i < attrs.length; i++) {
+            if (data.length > 0) {
+                data = abi.encodePacked(data, ',');
+            }
+            data = abi.encodePacked(data, '{"trait_type":"', symbol(attrs[i]), '","value":"', textOf(tokenId, attrs[i]), '"}');
+        }
         SynthesizedToken[] storage tokens = synthesizedTokens[tokenId];
         for (uint256 i = 0; i < tokens.length; i++) {
             data = abi.encodePacked(data, ',', concatAttribute(ISynthetic721(tokens[i].token).coreName(), tokens[i].id.toString()));

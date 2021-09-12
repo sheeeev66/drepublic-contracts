@@ -17,7 +17,7 @@ const polygonNetwork = "https://heimdall.api.matic.network";
 // contracts
 // rinkeby
 // const lootdataAddress = "0x283D93B97b0923c833374c6401eF74B837B64cAf";
-const legootAddress = "0x97f74f8668D42E3b4fB08fE4c9aA23dAE4511681";
+const legootAddress = "0xafA14055Ec31030c6b093fbFe1188c0a3638ec55";
 
 // mumbai
 // const lootdataAddress = "0x283D93B97b0923c833374c6401eF74B837B64cAf";
