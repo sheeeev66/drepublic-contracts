@@ -11,9 +11,9 @@ const rinkebyNetwork = "https://rinkeby.infura.io/v3/8355dcd582884501bae9d5bda7b
 const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
 
 // testnet
-const metacoreAddress = "0x287B885C247c506c68eA9bcBf752C9E406847452";
+const metacoreAddress = "0x92c239D4825AeE32e75623fBBa0A21f455cBB9f3";
 
-const legootAddress = "0x94c7c0d6B784E781187b189050eb6061E8Fb7Ae0";
+const legootAddress = "0x97f74f8668D42E3b4fB08fE4c9aA23dAE4511681";
 
 // mainnet
 // const metacoreAddress = "0xe98d61D06078993c0cB59Ad3021e1c782dBEe26A";
@@ -42,11 +42,11 @@ async function main() {
 
     console.log("tokenURI Metacore: ", await metacoreInstance.methods.tokenURI(meatcoreId).call());
 
-    console.log("claim Legoot result: ", await legootInstance.methods.claim(legootId).send({from: caller}));
+    console.log("claim Legoot result: ", await legootInstance.methods.claim(legootId).send({from: caller, value: 3 * 10000000000000000}));
 
     console.log("tokenURI Legoot: ", await legootInstance.methods.tokenURI(legootId).call());
 
-    console.log("claim Legoot2 result: ", await legootInstance.methods.claim(legootId2).send({from: caller}));
+    console.log("claim Legoot2 result: ", await legootInstance.methods.claim(legootId2).send({from: caller, value: 3 * 10000000000000000}));
 
     console.log("tokenURI Legoot2: ", await legootInstance.methods.tokenURI(legootId2).call());
 

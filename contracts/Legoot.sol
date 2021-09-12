@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "openzeppelin-solidity/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
+import "openzeppelin-solidity/contracts/utils/Address.sol";
 import "./Synthetic/ISynthetic.sol";
 import "./ERC3664/ERC3664.sol";
 import "./utils/Base64.sol";
@@ -74,6 +75,8 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
 
     uint256 public _totalSupply = 8000;
 
+    address payable public treasury = payable(0x99F120C4BA7d3621e26429Cba45A6F52b23DFd1F);
+
     struct SynthesizedToken {
         address owner;
         uint256 id;
@@ -81,6 +84,8 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
 
     // mainToken => SynthesizedToken
     mapping(uint256 => SynthesizedToken[]) public synthesizedTokens;
+
+    event Claimed(address indexed payee, uint256 weiAmount, uint256 tokenId);
 
     constructor() ERC721("Legoot", "LEGO") Ownable() {
         _mint(LEGOOT_NFT, "LEGOOT", "legoot", "");
@@ -107,10 +112,14 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         return subs;
     }
 
-    function claim(uint256 tokenId) public nonReentrant {
+    function claim(uint256 tokenId) public payable nonReentrant {
         require(tokenId > 0 && tokenId < 7778, "Token ID invalid");
+        uint256 amount = msg.value;
+        require(amount >= 3 * 10 ** 16, "Payed too low value");
+        Address.sendValue(treasury, amount);
         _safeMint(_msgSender(), tokenId);
         _afterTokenMint(tokenId);
+        emit Claimed(treasury, amount, tokenId);
     }
 
     function ownerClaim(uint256 tokenId) public nonReentrant onlyOwner {
