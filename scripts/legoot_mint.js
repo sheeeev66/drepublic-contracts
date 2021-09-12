@@ -12,7 +12,7 @@ const caller = "0xA5225cBEE5052100Ec2D2D94aA6d258558073757";
 
 // const lootdataAddress = "0x283D93B97b0923c833374c6401eF74B837B64cAf";
 
-const legootAddress = "0xF6E2c048D8F63cf61B1833Fb6e506e28FAD0AE49";
+const legootAddress = "0x48c8ac8ec0d9e5cfd2bc5aed3638ef09c3aadf80";
 
 // mainnet
 // const legootAddress = "0xe98d61D06078993c0cB59Ad3021e1c782dBEe26A";
@@ -35,26 +35,21 @@ async function main() {
 
     const lootId = 1;
 
-    const ret1 = await lootInstance.methods.claim(lootId).send({from: caller});
+    console.log("claim Legoot result: ", await lootInstance.methods.claim(lootId).send({from: caller}));
 
-    console.log("claim Legoot result: " + ret1);
+    console.log("tokenURI Legoot: ", await lootInstance.methods.tokenURI(lootId).call());
 
-    console.log("tokenURI Legoot: " + await lootInstance.methods.tokenURI(lootId).call());
-    //
-    const ret2 = await lootInstance.methods.separateOne(lootId, 8001 + (lootId - 1) * 8).send({from: caller});
-    console.log("Legoot separateOne result: " + ret2);
+    console.log("Legoot separateOne result: ", await lootInstance.methods.separateOne(lootId, 8001 + (lootId - 1) * 8).send({from: caller}));
 
-    console.log("tokenURI: " + await lootInstance.methods.tokenURI(lootId).call());
+    console.log("tokenURI: ", await lootInstance.methods.tokenURI(lootId).call());
 
-    const ret3 = await lootInstance.methods.separate(lootId).send({from: caller});
-    console.log("Legoot separateAll result: " + ret3);
+    console.log("Legoot separateAll result: ", await lootInstance.methods.separate(lootId).send({from: caller}));
 
-    console.log("tokenURI: " + await lootInstance.methods.tokenURI(lootId).call());
+    console.log("tokenURI: ", await lootInstance.methods.tokenURI(lootId).call());
 
-    const ret5 = await lootInstance.methods.combine(lootId, [8001 + (lootId - 1) * 8]).send({from: caller});
-    console.log("combine result: " + ret5);
+    console.log("combine result: ", await lootInstance.methods.combine(lootId, [8001 + (lootId - 1) * 8]).send({from: caller}));
 
-    console.log("tokenURI: " + await lootInstance.methods.tokenURI(lootId).call());
+    console.log("tokenURI: ", await lootInstance.methods.tokenURI(lootId).call());
 }
 
 main();

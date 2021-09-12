@@ -135,7 +135,7 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
                 require(nft_attr != primaryAttributeOf(id), "Legoot: duplicate sub token type");
             }
             _transfer(_msgSender(), address(this), subIds[i]);
-            _recordSynthesized(_msgSender(), tokenId, subIds[i]);
+            synthesizedTokens[tokenId].push(SynthesizedToken(_msgSender(), subIds[i]));
         }
     }
 
@@ -146,9 +146,7 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         SynthesizedToken[] storage subs = synthesizedTokens[tokenId];
         require(subs.length > 0, "Legoot: not synthesized token");
         for (uint256 i = 0; i < subs.length; i++) {
-            if (subs[i].id > 0 && subs[i].owner != address(0)) {
-                _transfer(address(this), subs[i].owner, subs[i].id);
-            }
+            _transfer(address(this), subs[i].owner, subs[i].id);
         }
         delete synthesizedTokens[tokenId];
     }
@@ -157,10 +155,10 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Legoot: caller is not token owner nor approved");
         require(primaryAttributeOf(tokenId) == LEGOOT_NFT, "Legoot: only support legoot separate");
 
-        uint256 idx = _findByValue(synthesizedTokens[tokenId], subId);
+        uint256 idx = findByValue(synthesizedTokens[tokenId], subId);
         SynthesizedToken storage token = synthesizedTokens[tokenId][idx];
         _transfer(address(this), token.owner, token.id);
-        delete synthesizedTokens[tokenId][idx];
+        removeAtIndex(synthesizedTokens[tokenId], idx);
     }
 
     function _beforeTokenTransfer(
@@ -173,9 +171,7 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         if (primaryAttributeOf(tokenId) == LEGOOT_NFT) {
             SynthesizedToken[] storage subs = synthesizedTokens[tokenId];
             for (uint256 i = 0; i < subs.length; i++) {
-                if (subs[i].id > 0) {
-                    subs[i].owner = to;
-                }
+                subs[i].owner = to;
             }
         }
     }
@@ -209,11 +205,9 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         }
         SynthesizedToken[] storage tokens = synthesizedTokens[tokenId];
         for (uint256 i = 0; i < tokens.length; i++) {
-            if (tokens[i].id > 0) {
-                pos += 20;
-                text = abi.encodePacked(text, '</text><text x="10" y="', pos.toString(), '" class="base">');
-                text = abi.encodePacked(text, tokenText(tokens[i].id, true));
-            }
+            pos += 20;
+            text = abi.encodePacked(text, '</text><text x="10" y="', pos.toString(), '" class="base">');
+            text = abi.encodePacked(text, tokenText(tokens[i].id, true));
         }
         return string(text);
     }
@@ -249,12 +243,10 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         bytes memory data = bytes(tokenAttributes(tokenId));
         SynthesizedToken[] storage tokens = synthesizedTokens[tokenId];
         for (uint256 i = 0; i < tokens.length; i++) {
-            if (tokens[i].id > 0) {
-                if (data.length > 0) {
-                    data = abi.encodePacked(data, ',', tokenAttributes(tokens[i].id));
-                } else {
-                    data = bytes(tokenAttributes(tokens[i].id));
-                }
+            if (data.length > 0) {
+                data = abi.encodePacked(data, ',', tokenAttributes(tokens[i].id));
+            } else {
+                data = bytes(tokenAttributes(tokens[i].id));
             }
         }
         return string(data);
@@ -297,17 +289,17 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         uint256 rand = random(string(abi.encodePacked(keyPrefix, tokenId.toString())));
         string memory output = sourceArray[rand % sourceArray.length];
 
-        bytes memory data = _concatAttribute(keyPrefix, 'NAME', output);
-        data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, 'ID', tokenId.toString()));
+        bytes memory data = concatAttribute(keyPrefix, 'NAME', output);
+        data = abi.encodePacked(data, ',', concatAttribute(keyPrefix, 'ID', tokenId.toString()));
         uint256 greatness = rand % 21;
         if (greatness > 14) {
-            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "suffix", suffixes[rand % suffixes.length]));
+            data = abi.encodePacked(data, ',', concatAttribute(keyPrefix, "suffix", suffixes[rand % suffixes.length]));
         }
         if (greatness >= 19) {
-            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "namePrefixes", namePrefixes[rand % namePrefixes.length]));
-            data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "nameSuffixes", nameSuffixes[rand % nameSuffixes.length]));
+            data = abi.encodePacked(data, ',', concatAttribute(keyPrefix, "namePrefixes", namePrefixes[rand % namePrefixes.length]));
+            data = abi.encodePacked(data, ',', concatAttribute(keyPrefix, "nameSuffixes", nameSuffixes[rand % nameSuffixes.length]));
             if (greatness > 19) {
-                data = abi.encodePacked(data, ',', _concatAttribute(keyPrefix, "greatness", "+1"));
+                data = abi.encodePacked(data, ',', concatAttribute(keyPrefix, "greatness", "+1"));
             }
         }
         return string(data);
@@ -381,43 +373,54 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         attach(tokenId, LEGOOT_NFT, 1, bytes("legoot"), true);
         uint256 id = _totalSupply + (tokenId - 1) * 8 + 1;
         // WEAPON
-        _mintSubToken(WEAPON_NFT, tokenId, id);
+        mintSubToken(WEAPON_NFT, tokenId, id);
         // CHEST
-        _mintSubToken(CHEST_NFT, tokenId, id + 1);
+        mintSubToken(CHEST_NFT, tokenId, id + 1);
         // HEAD
-        _mintSubToken(HEAD_NFT, tokenId, id + 2);
+        mintSubToken(HEAD_NFT, tokenId, id + 2);
         // WAIST
-        _mintSubToken(WAIST_NFT, tokenId, id + 3);
+        mintSubToken(WAIST_NFT, tokenId, id + 3);
         // FOOT
-        _mintSubToken(FOOT_NFT, tokenId, id + 4);
+        mintSubToken(FOOT_NFT, tokenId, id + 4);
         // HAND
-        _mintSubToken(HAND_NFT, tokenId, id + 5);
+        mintSubToken(HAND_NFT, tokenId, id + 5);
         // NECK
-        _mintSubToken(NECK_NFT, tokenId, id + 6);
+        mintSubToken(NECK_NFT, tokenId, id + 6);
         // RING
-        _mintSubToken(RING_NFT, tokenId, id + 7);
+        mintSubToken(RING_NFT, tokenId, id + 7);
     }
 
-    function _mintSubToken(uint256 attr, uint256 tokenId, uint256 subId) internal virtual {
+    function mintSubToken(uint256 attr, uint256 tokenId, uint256 subId) internal virtual {
         _mint(address(this), subId);
         attach(subId, attr, 1, bytes(""), true);
-        _recordSynthesized(_msgSender(), tokenId, subId);
+        synthesizedTokens[tokenId].push(SynthesizedToken(_msgSender(), subId));
     }
 
-    function _recordSynthesized(address owner, uint256 tokenId, uint256 subId) internal {
-        synthesizedTokens[tokenId].push(SynthesizedToken(owner, subId));
-    }
-
-    function _concatAttribute(string memory keyPrefix, string memory key, string memory value) internal pure returns (bytes memory)  {
+    function concatAttribute(string memory keyPrefix, string memory key, string memory value) internal pure returns (bytes memory)  {
         return abi.encodePacked('{"trait_type":"', keyPrefix, ' ', key, '","value":"', value, '"}');
     }
 
-    function _findByValue(SynthesizedToken[] storage values, uint256 value) internal view returns (uint256) {
+    function findByValue(SynthesizedToken[] storage values, uint256 value) internal view returns (uint256) {
         uint256 i = 0;
         while (values[i].id != value) {
             i++;
         }
         return i;
+    }
+
+    function removeAtIndex(SynthesizedToken[] storage values, uint256 index) internal {
+        uint256 max = values.length;
+        if (index >= max) return;
+
+        if (index == max - 1) {
+            values.pop();
+            return;
+        }
+
+        for (uint256 i = index; i < max - 1; i++) {
+            values[i] = values[i + 1];
+        }
+        values.pop();
     }
 
     function random(string memory input) internal pure returns (uint256) {
