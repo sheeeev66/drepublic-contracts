@@ -55,18 +55,9 @@ interface ILootData {
 contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
 
-    // ethereum mainnet
-    //address public constant LOOT = 0xff9c1b15b16263c61d017ee9f65c50e4ae0113d7;
-    // rinkeby
-    //address public constant LOOT = 0x5C44B86e21f49cA7e66BB2381D3acD1004E4a1A2;
-    //address public constant LOOTDATA = 0x283D93B97b0923c833374c6401eF74B837B64cAf;
-    // polygon
-    //address public constant WETH = 0x7ceb23fd6bc0add59e62ac25578270cff1b9f619;
-    // mumbai
-    address public constant LOOT = 0x349aD102fD10bB5F22634373809964C575C2Bb95;
-    address public constant LOOTDATA = 0x4CF659eA4CB55502C5F8225172EEdc72A9542733;
-    // mock
-    address public constant WETH = 0x1D190851714fA20af51715FdD2E5ee5CfAB6fC17;
+    address public constant LOOT = 0x543aa3aF539Acb9a3BBbC9e8a3F1024B522830c8;
+    address public constant LOOTDATA = 0xE2d0CAC48b824cBC21D1cD37c4F38f55FcFE9A5C;
+    address public constant WETH = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
 
     uint256 public constant LEGOOT_NFT = 1;
     uint256 public constant WEAPON_NFT = 2;
@@ -120,17 +111,17 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
     }
 
     function claim(uint256 tokenId) public nonReentrant {
-        require(tokenId > 0 && tokenId < 7778, "Token ID invalid");
+        require(tokenId > 0 && tokenId < 7981, "Token ID invalid");
         uint256 amount = IERC20(WETH).allowance(_msgSender(), address(this));
-        require(amount >= 3 * 10 ** 16, "Payed too low value");
-        IERC20(WETH).transferFrom(_msgSender(), treasury, 3 * 10 ** 16);
+        require(amount >= 2 * 10 ** 16, "Payed too low value");
+        IERC20(WETH).transferFrom(_msgSender(), treasury, 2 * 10 ** 16);
         _safeMint(_msgSender(), tokenId);
         _afterTokenMint(tokenId);
         emit Claimed(treasury, amount, tokenId);
     }
 
     function ownerClaim(uint256 tokenId) public nonReentrant onlyOwner {
-        require(tokenId > 7777 && tokenId < 8001, "Token ID invalid");
+        require(tokenId > 7980 && tokenId < 8001, "Token ID invalid");
         _safeMint(owner(), tokenId);
         _afterTokenMint(tokenId);
     }

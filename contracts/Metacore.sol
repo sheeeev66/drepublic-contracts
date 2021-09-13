@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "openzeppelin-solidity/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/utils/Strings.sol";
@@ -23,6 +24,10 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
 
     uint256 private constant METANAME = 1;
 
+    address public constant WETH = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
+
+    address public constant TREASURY = 0x99F120C4BA7d3621e26429Cba45A6F52b23DFd1F;
+
     uint256 private _totalSupply = 8000;
 
     uint256 private _curTokenId;
@@ -33,8 +38,8 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
 
     mapping(address => bool) private _authNFTs;
 
-    constructor() ERC3664CrossSynthetic() ERC721("Metacore Identity System", "Metacore") Ownable() {
-        _authNFTs[address(0x0F5ED2fbc6B4b43b51d57bc4016B4Cb83964F873)] = true;
+    constructor() ERC3664CrossSynthetic() ERC721("Metacore", "MTC") Ownable() {
+        _authNFTs[address(0x9ee77ad564F9AD484D1fD34a8413049bee56B8d4)] = true;
         _mint(METANAME, "Metaname", "Metaname", "");
     }
 
@@ -61,6 +66,10 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
     function claim(string memory name) public nonReentrant {
         require(bytes(name).length > 0, "Metacore: invalid name length");
         require(getNextTokenID() <= _totalSupply, "Metacore: reached the maximum number of claim");
+
+        uint256 amount = IERC20(WETH).allowance(_msgSender(), address(this));
+        require(amount >= 5 * 10 ** 15, "Payed too low value");
+        IERC20(WETH).transferFrom(_msgSender(), TREASURY, 5 * 10 ** 15);
 
         _curTokenId += 1;
         _safeMint(_msgSender(), _curTokenId);
