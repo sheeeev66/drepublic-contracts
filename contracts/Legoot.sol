@@ -3,9 +3,9 @@
 pragma solidity ^0.8.0;
 
 import "openzeppelin-solidity/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
+import "openzeppelin-solidity/contracts/utils/Address.sol";
 import "./Synthetic/ISynthetic.sol";
 import "./ERC3664/ERC3664.sol";
 import "./utils/Base64.sol";
@@ -55,9 +55,8 @@ interface ILootData {
 contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
 
-    address public constant LOOT = 0x543aa3aF539Acb9a3BBbC9e8a3F1024B522830c8;
-    address public constant LOOTDATA = 0xE2d0CAC48b824cBC21D1cD37c4F38f55FcFE9A5C;
-    address public constant WETH = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
+    address public constant LOOT = 0xD7A57eb548B48727b2E351E8D15308E85861dc3c;
+    address public constant LOOTDATA = 0x50AD462356eF557E16C10238957B13746488656A;
 
     uint256 public constant LEGOOT_NFT = 1;
     uint256 public constant WEAPON_NFT = 2;
@@ -73,7 +72,7 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
 
     uint256 public _totalSupply = 8000;
 
-    address public treasury = 0x99F120C4BA7d3621e26429Cba45A6F52b23DFd1F;
+    address payable public treasury = payable(0x99F120C4BA7d3621e26429Cba45A6F52b23DFd1F);
 
     struct SynthesizedToken {
         address owner;
@@ -110,11 +109,11 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
         return subs;
     }
 
-    function claim(uint256 tokenId) public nonReentrant {
+    function claim(uint256 tokenId) public payable nonReentrant {
         require(tokenId > 0 && tokenId < 7981, "Token ID invalid");
-        uint256 amount = IERC20(WETH).allowance(_msgSender(), address(this));
-        require(amount >= 2 * 10 ** 16, "Payed too low value");
-        IERC20(WETH).transferFrom(_msgSender(), treasury, 2 * 10 ** 16);
+        uint256 amount = msg.value;
+        require(amount >= 15 * 10 ** 16, "Payed too low value");
+        Address.sendValue(treasury, 15 * 10 ** 16);
         _safeMint(_msgSender(), tokenId);
         _afterTokenMint(tokenId);
         emit Claimed(treasury, amount, tokenId);

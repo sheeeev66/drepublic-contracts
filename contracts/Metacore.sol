@@ -3,10 +3,10 @@
 pragma solidity ^0.8.0;
 
 import "openzeppelin-solidity/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/utils/Strings.sol";
+import "openzeppelin-solidity/contracts/utils/Address.sol";
 import "./ERC3664/extensions/ERC3664CrossSynthetic.sol";
 import "./Synthetic/ISynthetic721.sol";
 import "./utils/Base64.sol";
@@ -24,9 +24,7 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
 
     uint256 private constant METANAME = 1;
 
-    address public constant WETH = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
-
-    address public constant TREASURY = 0x99F120C4BA7d3621e26429Cba45A6F52b23DFd1F;
+    address payable public treasury = payable(0x99F120C4BA7d3621e26429Cba45A6F52b23DFd1F);
 
     uint256 private _totalSupply = 8000;
 
@@ -39,7 +37,7 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
     mapping(address => bool) private _authNFTs;
 
     constructor() ERC3664CrossSynthetic() ERC721("Metacore", "MTC") Ownable() {
-        _authNFTs[address(0x9ee77ad564F9AD484D1fD34a8413049bee56B8d4)] = true;
+        _authNFTs[address(0x10949E6d7949C68E6F00B7d907131bE78170bd3F)] = true;
         _mint(METANAME, "Metaname", "Metaname", "");
     }
 
@@ -63,13 +61,13 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
         _authNFTs[nft] = enable;
     }
 
-    function claim(string memory name) public nonReentrant {
+    function claim(string memory name) public payable nonReentrant {
         require(bytes(name).length > 0, "Metacore: invalid name length");
         require(getNextTokenID() <= _totalSupply, "Metacore: reached the maximum number of claim");
 
-        uint256 amount = IERC20(WETH).allowance(_msgSender(), address(this));
-        require(amount >= 5 * 10 ** 15, "Payed too low value");
-        IERC20(WETH).transferFrom(_msgSender(), TREASURY, 5 * 10 ** 15);
+        uint256 amount = msg.value;
+        require(amount >= 4 * 10 ** 16, "Payed too low value");
+        Address.sendValue(treasury, 4 * 10 ** 16);
 
         _curTokenId += 1;
         _safeMint(_msgSender(), _curTokenId);
