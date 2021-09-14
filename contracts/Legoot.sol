@@ -61,8 +61,8 @@ interface ILootData {
 contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
 
-    address public constant LOOT = 0xE2d0CAC48b824cBC21D1cD37c4F38f55FcFE9A5C;
-    address public constant LOOTDATA = 0x5B61F03B877E9AE7774A7E9109248ee5f8A2A25f;
+    address public constant LOOT = 0x543aa3aF539Acb9a3BBbC9e8a3F1024B522830c8;
+    address public constant LOOTDATA = 0xE2d0CAC48b824cBC21D1cD37c4F38f55FcFE9A5C;
 
     uint256 public constant LEGOOT_NFT = 1;
     uint256 public constant WEAPON_NFT = 2;
@@ -74,7 +74,7 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
     uint256 public constant NECK_NFT = 8;
     uint256 public constant RING_NFT = 9;
 
-    string private _name = "Legoot";
+    string private _name = "Legoot V2";
 
     uint256 public _totalSupply = 8000;
 
@@ -90,7 +90,7 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
 
     event Claimed(address indexed payee, uint256 weiAmount, uint256 tokenId);
 
-    constructor() ERC721("Legoot", "LEGO") Ownable() {
+    constructor() ERC721("Legoot V2", "LEGO") Ownable() {
         _mint(LEGOOT_NFT, "LEGOOT", "legoot", "");
         _mint(WEAPON_NFT, "WEAPON", "weapon", "");
         _mint(CHEST_NFT, "CHEST", "chest", "");
@@ -118,8 +118,8 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
     function claim(uint256 tokenId) public payable nonReentrant {
         require(tokenId > 0 && tokenId < 7981, "Token ID invalid");
         uint256 amount = msg.value;
-        require(amount >= 12 * 10 ** 16, "Payed too low value");
-        Address.sendValue(treasury, 12 * 10 ** 16);
+        require(amount >= 40 * 10 ** 18, "Payed too low value");
+        Address.sendValue(treasury, 40 * 10 ** 18);
         _safeMint(_msgSender(), tokenId);
         _afterTokenMint(tokenId);
         emit Claimed(treasury, amount, tokenId);

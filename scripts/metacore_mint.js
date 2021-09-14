@@ -21,6 +21,9 @@ const metacoreAddress = "0x267A3b0d36BD56561017b5dc3448b3cD47776Da9";
 const legootAddress = "0x0F5ED2fbc6B4b43b51d57bc4016B4Cb83964F873";
 const wethAddress = "0x1D190851714fA20af51715FdD2E5ee5CfAB6fC17";
 
+// bsc
+// const metacoreAddress = "0x28fe1aB4e3811Fbf59a2F02df0aed4518F2DA048";
+
 async function main() {
     const provider = new HDWalletProvider(mnemonic, mumbaiNetwork);
     const web3 = new Web3(provider);
