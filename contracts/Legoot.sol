@@ -1,3 +1,9 @@
+/**
+ *Submitted for verification at Etherscan.io on 2021-09-14
+ *
+ *@author ty, tyler, muniz
+*/
+
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
@@ -55,8 +61,8 @@ interface ILootData {
 contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownable {
     using Strings for uint256;
 
-    address public constant LOOT = 0xD7A57eb548B48727b2E351E8D15308E85861dc3c;
-    address public constant LOOTDATA = 0x50AD462356eF557E16C10238957B13746488656A;
+    address public constant LOOT = 0xE2d0CAC48b824cBC21D1cD37c4F38f55FcFE9A5C;
+    address public constant LOOTDATA = 0x5B61F03B877E9AE7774A7E9109248ee5f8A2A25f;
 
     uint256 public constant LEGOOT_NFT = 1;
     uint256 public constant WEAPON_NFT = 2;
@@ -112,8 +118,8 @@ contract Legoot is ERC3664, ISynthetic, ERC721Enumerable, ReentrancyGuard, Ownab
     function claim(uint256 tokenId) public payable nonReentrant {
         require(tokenId > 0 && tokenId < 7981, "Token ID invalid");
         uint256 amount = msg.value;
-        require(amount >= 15 * 10 ** 16, "Payed too low value");
-        Address.sendValue(treasury, 15 * 10 ** 16);
+        require(amount >= 12 * 10 ** 16, "Payed too low value");
+        Address.sendValue(treasury, 12 * 10 ** 16);
         _safeMint(_msgSender(), tokenId);
         _afterTokenMint(tokenId);
         emit Claimed(treasury, amount, tokenId);

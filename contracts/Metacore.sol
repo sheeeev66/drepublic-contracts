@@ -1,3 +1,9 @@
+/**
+ *Submitted for verification at Etherscan.io on 2021-09-14
+ *
+ *@author ty, tyler, muniz
+*/
+
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
@@ -37,7 +43,7 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
     mapping(address => bool) private _authNFTs;
 
     constructor() ERC3664CrossSynthetic() ERC721("Metacore", "MTC") Ownable() {
-        _authNFTs[address(0x10949E6d7949C68E6F00B7d907131bE78170bd3F)] = true;
+        _authNFTs[address(0x543aa3aF539Acb9a3BBbC9e8a3F1024B522830c8)] = true;
         _mint(METANAME, "Metaname", "Metaname", "");
     }
 
@@ -66,8 +72,8 @@ contract Metacore is ERC3664CrossSynthetic, ERC721Enumerable, ReentrancyGuard, O
         require(getNextTokenID() <= _totalSupply, "Metacore: reached the maximum number of claim");
 
         uint256 amount = msg.value;
-        require(amount >= 4 * 10 ** 16, "Payed too low value");
-        Address.sendValue(treasury, 4 * 10 ** 16);
+        require(amount >= 3 * 10 ** 16, "Payed too low value");
+        Address.sendValue(treasury, 3 * 10 ** 16);
 
         _curTokenId += 1;
         _safeMint(_msgSender(), _curTokenId);
