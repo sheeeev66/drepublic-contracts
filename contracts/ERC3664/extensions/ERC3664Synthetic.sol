@@ -22,37 +22,60 @@ contract ERC3664Synthetic is ERC3664 {
     // Mapping from token ID to approved another token.
     mapping(uint256 => uint256) private _combineApprovals;
 
-    constructor () ERC3664() {}
+    constructor() ERC3664() {}
 
-    function recordSynthesized(address owner, uint256 tokenId, uint256 subId) public {
+    function recordSynthesized(
+        address owner,
+        uint256 tokenId,
+        uint256 subId
+    ) public {
         synthesizedTokens[tokenId].push(SynthesizedToken(owner, subId));
         subTokens[subId] = tokenId;
     }
 
-    function getSynthesizedTokens(uint256 tokenId) public view returns (SynthesizedToken[] memory) {
+    function getSynthesizedTokens(uint256 tokenId)
+        public
+        view
+        returns (SynthesizedToken[] memory)
+    {
         return synthesizedTokens[tokenId];
     }
 
-    function tokenAttributes(uint256 tokenId) internal view returns (string memory) {
+    function tokenAttributes(uint256 tokenId)
+        internal
+        view
+        returns (string memory)
+    {
         bytes memory data = "";
         uint256[] memory attrs = attributesOf(tokenId);
-        for (uint i = 0; i < attrs.length; i++) {
+        for (uint256 i = 0; i < attrs.length; i++) {
             if (data.length > 0) {
-                data = abi.encodePacked(data, ',');
+                data = abi.encodePacked(data, ",");
             }
-            data = abi.encodePacked(data, '{"trait_type":"', symbol(attrs[i]), '","value":"', textOf(tokenId, attrs[i]), '"}');
+            data = abi.encodePacked(
+                data,
+                '{"trait_type":"',
+                symbol(attrs[i]),
+                '","value":"',
+                textOf(tokenId, attrs[i]),
+                '"}'
+            );
         }
         data = abi.encodePacked(data, getSubAttributes(tokenId));
 
         return string(data);
     }
 
-    function getSubAttributes(uint256 tokenId) internal view returns (bytes memory) {
+    function getSubAttributes(uint256 tokenId)
+        internal
+        view
+        returns (bytes memory)
+    {
         bytes memory data = "";
         SynthesizedToken[] memory sTokens = synthesizedTokens[tokenId];
-        for (uint i = 0; i < sTokens.length; i++) {
+        for (uint256 i = 0; i < sTokens.length; i++) {
             if (data.length > 0) {
-                data = abi.encodePacked(data, ',');
+                data = abi.encodePacked(data, ",");
             }
             data = abi.encodePacked(data, tokenAttributes(sTokens[i].id));
         }

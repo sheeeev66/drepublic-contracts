@@ -9,7 +9,13 @@ import "../utils/AttributeClass.sol";
 import "../utils/Operatable.sol";
 import "../utils/Arrays.sol";
 
-contract UpgradableAttribute is IUpgradableAttribute, Context, Ownable, Operatable, AttributeClass {
+contract UpgradableAttribute is
+    IUpgradableAttribute,
+    Context,
+    Ownable,
+    Operatable,
+    AttributeClass
+{
     using Arrays for uint256[];
 
     struct UpgradableSettings {
@@ -33,25 +39,55 @@ contract UpgradableAttribute is IUpgradableAttribute, Context, Ownable, Operatab
     // nft ID => attributes
     mapping(uint256 => uint256[]) public nftAttrs;
 
-    constructor () AttributeClass(2){}
+    constructor() AttributeClass(2) {}
 
-    function name(uint256 _attrId) public view virtual override returns (string memory) {
+    function name(uint256 _attrId)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
         return attrs[_attrId].name;
     }
 
-    function description(uint256 _attrId) public view virtual override returns (string memory) {
+    function description(uint256 _attrId)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
         return attrs[_attrId].description;
     }
 
-    function getNFTAttrs(uint256 _nftId) public view virtual override returns (uint256[] memory) {
+    function getNFTAttrs(uint256 _nftId)
+        public
+        view
+        virtual
+        override
+        returns (uint256[] memory)
+    {
         return nftAttrs[_nftId];
     }
 
-    function maxLevel(uint256 _attrId) public view virtual override returns (uint8) {
+    function maxLevel(uint256 _attrId)
+        public
+        view
+        virtual
+        override
+        returns (uint8)
+    {
         return attrs[_attrId].level;
     }
 
-    function maxSubLevel(uint256 _attrId) public view virtual override returns (uint8) {
+    function maxSubLevel(uint256 _attrId)
+        public
+        view
+        virtual
+        override
+        returns (uint8)
+    {
         return attrs[_attrId].subLevel;
     }
 
@@ -62,41 +98,57 @@ contract UpgradableAttribute is IUpgradableAttribute, Context, Ownable, Operatab
         uint8 _level,
         uint8 _subLevel
     ) public virtual override onlyOwner {
-        require(!_exists(_id), "UpgradableAttribute: attribute _id already exists");
+        require(
+            !_exists(_id),
+            "UpgradableAttribute: attribute _id already exists"
+        );
         UpgradableSettings memory settings = UpgradableSettings({
-        name : _name,
-        description : _description,
-        level : _level,
-        subLevel : _subLevel
+            name: _name,
+            description: _description,
+            level: _level,
+            subLevel: _subLevel
         });
         attrs[_id] = settings;
 
         emit UpgradableAttributeCreated(_name, _id);
     }
 
-    function attach(
-        uint256 _nftId,
-        uint256 _attrId
-    ) public virtual override onlyOperator {
-        require(_exists(_attrId), "UpgradableAttribute: attribute _id not exists");
-        require(!_hasAttr(_nftId, _attrId), "UpgradableAttribute: nft has attached the attribute");
+    function attach(uint256 _nftId, uint256 _attrId)
+        public
+        virtual
+        override
+        onlyOperator
+    {
+        require(
+            _exists(_attrId),
+            "UpgradableAttribute: attribute _id not exists"
+        );
+        require(
+            !_hasAttr(_nftId, _attrId),
+            "UpgradableAttribute: nft has attached the attribute"
+        );
 
-        _states[_attrId][_nftId] = UpgradeState({
-        level : 1,
-        subLevel : 1
-        });
+        _states[_attrId][_nftId] = UpgradeState({level: 1, subLevel: 1});
 
         nftAttrs[_nftId].push(_attrId);
 
         emit UpgradableAttributeAttached(_nftId, _attrId);
     }
 
-    function remove(
-        uint256 _nftId,
-        uint256 _attrId
-    ) public virtual override onlyOperator {
-        require(_exists(_attrId), "UpgradableAttribute: attribute _id not exists");
-        require(_hasAttr(_nftId, _attrId), "UpgradableAttribute: nft has not attached the attribute");
+    function remove(uint256 _nftId, uint256 _attrId)
+        public
+        virtual
+        override
+        onlyOperator
+    {
+        require(
+            _exists(_attrId),
+            "UpgradableAttribute: attribute _id not exists"
+        );
+        require(
+            _hasAttr(_nftId, _attrId),
+            "UpgradableAttribute: nft has not attached the attribute"
+        );
 
         delete _states[_attrId][_nftId];
 
@@ -110,11 +162,23 @@ contract UpgradableAttribute is IUpgradableAttribute, Context, Ownable, Operatab
         uint256 _attrId,
         uint8 _level
     ) public virtual override onlyOperator {
-        require(_exists(_attrId), "UpgradableAttribute: attribute _id not exists");
-        require(_hasAttr(_nftId, _attrId), "UpgradableAttribute: nft has not attached the attribute");
+        require(
+            _exists(_attrId),
+            "UpgradableAttribute: attribute _id not exists"
+        );
+        require(
+            _hasAttr(_nftId, _attrId),
+            "UpgradableAttribute: nft has not attached the attribute"
+        );
 
-        require(_level <= attrs[_attrId].level, "UpgradableAttribute: exceeded the maximum level");
-        require(_level == _states[_attrId][_nftId].level + 1, "UpgradableAttribute: invalid level");
+        require(
+            _level <= attrs[_attrId].level,
+            "UpgradableAttribute: exceeded the maximum level"
+        );
+        require(
+            _level == _states[_attrId][_nftId].level + 1,
+            "UpgradableAttribute: invalid level"
+        );
 
         _states[_attrId][_nftId].level = _level;
 
@@ -126,13 +190,25 @@ contract UpgradableAttribute is IUpgradableAttribute, Context, Ownable, Operatab
         uint256 _attrId,
         uint8 _subLevel
     ) public virtual override onlyOperator {
-        require(_exists(_attrId), "UpgradableAttribute: attribute _id not exists");
-        require(_hasAttr(_nftId, _attrId), "UpgradableAttribute: nft has not attached the attribute");
+        require(
+            _exists(_attrId),
+            "UpgradableAttribute: attribute _id not exists"
+        );
+        require(
+            _hasAttr(_nftId, _attrId),
+            "UpgradableAttribute: nft has not attached the attribute"
+        );
 
         UpgradeState memory state = _states[_attrId][_nftId];
 
-        require(_subLevel <= attrs[_attrId].subLevel, "UpgradableAttribute: exceeded the maximum subLevel");
-        require(_subLevel == state.subLevel + 1, "UpgradableAttribute: invalid subLevel");
+        require(
+            _subLevel <= attrs[_attrId].subLevel,
+            "UpgradableAttribute: exceeded the maximum subLevel"
+        );
+        require(
+            _subLevel == state.subLevel + 1,
+            "UpgradableAttribute: invalid subLevel"
+        );
 
         state.subLevel = _subLevel;
         _states[_attrId][_nftId] = state;
@@ -144,7 +220,11 @@ contract UpgradableAttribute is IUpgradableAttribute, Context, Ownable, Operatab
         return attrs[_id].level > 0;
     }
 
-    function _hasAttr(uint256 _nftId, uint256 _attrId) internal view returns (bool) {
+    function _hasAttr(uint256 _nftId, uint256 _attrId)
+        internal
+        view
+        returns (bool)
+    {
         return _states[_attrId][_nftId].level > 0;
     }
 }

@@ -10,7 +10,7 @@ abstract contract AttributeClass {
     // more expand...
     uint16 private _class;
 
-    constructor (uint16 class_) {
+    constructor(uint16 class_) {
         _class = class_;
     }
 

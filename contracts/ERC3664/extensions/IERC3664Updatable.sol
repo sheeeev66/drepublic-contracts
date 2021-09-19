@@ -16,10 +16,18 @@ interface IERC3664Updatable is IERC3664Metadata {
     /**
      * @dev Increases `amount` value of attribute type `attrId` to `tokenId`.
      */
-    function increase(uint256 tokenId, uint256 attrId, uint256 amount) external;
+    function increase(
+        uint256 tokenId,
+        uint256 attrId,
+        uint256 amount
+    ) external;
 
     /**
      * @dev Decreases `amount` value of attribute type `attrId` from `tokenId`.
      */
-    function decrease(uint256 tokenId, uint256 attrId, uint256 amount) external;
+    function decrease(
+        uint256 tokenId,
+        uint256 attrId,
+        uint256 amount
+    ) external;
 }

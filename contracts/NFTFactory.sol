@@ -26,8 +26,7 @@ contract NFTFactory is ERC1155Preset {
         string memory _name,
         string memory _symbol,
         string memory _uri
-    ) ERC1155Preset(_name, _symbol, _uri) {
-    }
+    ) ERC1155Preset(_name, _symbol, _uri) {}
 
     function registerAttribute(uint16 _class, address _attr) public onlyOwner {
         attributes[_class] = _attr;
@@ -37,7 +36,11 @@ contract NFTFactory is ERC1155Preset {
         return _currentNFTId.add(1);
     }
 
-    function getHolderTokens(address holder, uint size, uint page) public view returns (uint256[] memory) {
+    function getHolderTokens(
+        address holder,
+        uint256 size,
+        uint256 page
+    ) public view returns (uint256[] memory) {
         uint256 beginIdx = size * page;
         uint256 rest = _holderTokens[holder].length - beginIdx;
         uint256 quantity = rest > size ? size : rest;
@@ -56,16 +59,15 @@ contract NFTFactory is ERC1155Preset {
         return _holderTokens[holder].length;
     }
 
-    function uri(
-        uint256 _id
-    ) override public view returns (string memory) {
+    function uri(uint256 _id) public view override returns (string memory) {
         require(_exists(_id), "NFTFactory#uri: nonexistent token");
         // We have to convert string to bytes to check for existence
         bytes memory customUriBytes = bytes(customUri[_id]);
         if (customUriBytes.length > 0) {
             return customUri[_id];
         } else {
-            return string(abi.encodePacked(super.uri(_id), tokenMetadatas[_id]));
+            return
+                string(abi.encodePacked(super.uri(_id), tokenMetadatas[_id]));
         }
     }
 
@@ -76,15 +78,26 @@ contract NFTFactory is ERC1155Preset {
         uint256[] calldata _values,
         bytes[] calldata _texts
     ) public onlyOwner returns (uint256 tokenId) {
-        require(_attributes.length == _values.length, "NFTFactory#createNFT: attributes and values length mismatch");
+        require(
+            _attributes.length == _values.length,
+            "NFTFactory#createNFT: attributes and values length mismatch"
+        );
         // create nft only attach generic attribute.
         uint16 attrType = 2;
-        require(attributes[attrType] != address(0), "NFTFactory#createNFT: invalid attribute type");
+        require(
+            attributes[attrType] != address(0),
+            "NFTFactory#createNFT: invalid attribute type"
+        );
 
         uint256 _id = _currentNFTId++;
         tokenMetadatas[_id] = _metadata;
 
-        IERC3664(attributes[attrType]).batchAttach(_id, _attributes, _values, _texts);
+        IERC3664(attributes[attrType]).batchAttach(
+            _id,
+            _attributes,
+            _values,
+            _texts
+        );
 
         tokenId = create(_initialOwner, _id, 1, "", "");
     }
@@ -96,15 +109,28 @@ contract NFTFactory is ERC1155Preset {
         uint256[][] calldata _values,
         bytes[][] calldata _texts
     ) external onlyOwner returns (uint256[] memory tokenIds) {
-        require(_initialOwners.length == _metadatas.length,
-            "NFTFactory#batchCreateNFT: initialOwners and metadatas length mismatch");
-        require(_initialOwners.length == _values.length,
-            "NFTFactory#batchCreateNFT: initialOwners and values length mismatch");
-        require(attributes[2] != address(0), "NFTFactory#createNFT: invalid attribute type");
+        require(
+            _initialOwners.length == _metadatas.length,
+            "NFTFactory#batchCreateNFT: initialOwners and metadatas length mismatch"
+        );
+        require(
+            _initialOwners.length == _values.length,
+            "NFTFactory#batchCreateNFT: initialOwners and values length mismatch"
+        );
+        require(
+            attributes[2] != address(0),
+            "NFTFactory#createNFT: invalid attribute type"
+        );
 
         tokenIds = new uint256[](_initialOwners.length);
-        for (uint i = 0; i < _initialOwners.length; i++) {
-            createNFT(_initialOwners[i], _metadatas[i], _attributes, _values[i], _texts[i]);
+        for (uint256 i = 0; i < _initialOwners.length; i++) {
+            createNFT(
+                _initialOwners[i],
+                _metadatas[i],
+                _attributes,
+                _values[i],
+                _texts[i]
+            );
         }
     }
 
@@ -118,7 +144,7 @@ contract NFTFactory is ERC1155Preset {
     ) internal virtual override(ERC1155Pausable) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
 
-        for (uint i = 0; i < ids.length; i++) {
+        for (uint256 i = 0; i < ids.length; i++) {
             tokenOwners[ids[i]] = to;
             if (from != address(0)) {
                 _removeByValue(_holderTokens[from], ids[i]);
@@ -129,8 +155,8 @@ contract NFTFactory is ERC1155Preset {
         }
     }
 
-    function _removeByValue(uint256[] storage values, uint value) internal {
-        uint i = 0;
+    function _removeByValue(uint256[] storage values, uint256 value) internal {
+        uint256 i = 0;
         while (values[i] != value) {
             i++;
         }

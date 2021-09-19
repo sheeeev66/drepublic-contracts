@@ -51,34 +51,52 @@ interface IERC3664 is IERC165 {
     );
 
     /**
-    * @dev Returns primary attribute type of owned by `tokenId`.
-    */
-    function primaryAttributeOf(uint256 tokenId) external view returns (uint256);
+     * @dev Returns primary attribute type of owned by `tokenId`.
+     */
+    function primaryAttributeOf(uint256 tokenId)
+        external
+        view
+        returns (uint256);
 
     /**
      * @dev Returns all attribute types of owned by `tokenId`.
      */
-    function attributesOf(uint256 tokenId) external view returns (uint256[] memory);
+    function attributesOf(uint256 tokenId)
+        external
+        view
+        returns (uint256[] memory);
 
     /**
      * @dev Returns the attribute type `attrId` value owned by `tokenId`.
      */
-    function balanceOf(uint256 tokenId, uint256 attrId) external view returns (uint256);
+    function balanceOf(uint256 tokenId, uint256 attrId)
+        external
+        view
+        returns (uint256);
 
     /**
      * @dev Returns the batch of attribute type `attrIds` values owned by `tokenId`.
      */
     function balanceOfBatch(uint256 tokenId, uint256[] calldata attrIds)
-    external
-    view
-    returns (uint256[] memory);
+        external
+        view
+        returns (uint256[] memory);
 
-    function textOf(uint256 tokenId, uint256 attrId) external view returns (bytes memory);
+    function textOf(uint256 tokenId, uint256 attrId)
+        external
+        view
+        returns (bytes memory);
 
     /**
      * @dev Attaches `amount` value of attribute type `attrId` to `tokenId`.
      */
-    function attach(uint256 tokenId, uint256 attrId, uint256 amount, bytes memory text, bool isPrimary) external;
+    function attach(
+        uint256 tokenId,
+        uint256 attrId,
+        uint256 amount,
+        bytes memory text,
+        bool isPrimary
+    ) external;
 
     /**
      * @dev [Batched] version of {attach}.

@@ -21,19 +21,31 @@ interface IERC3664Transferable is IERC3664Metadata {
     /**
      * @dev Returns true if `attrId` is approved to token `to` from token `from`.
      */
-    function isApproved(uint256 from, uint256 to, uint256 attrId) external view returns (bool);
+    function isApproved(
+        uint256 from,
+        uint256 to,
+        uint256 attrId
+    ) external view returns (bool);
 
     /**
      * @dev Approve attribute type `attrId` of token `from` to token `to` called by `from` holder.
      *
      * Emits an {AttributeApproval} event.
      */
-    function approve(uint256 from, uint256 to, uint256 attrId) external;
+    function approve(
+        uint256 from,
+        uint256 to,
+        uint256 attrId
+    ) external;
 
     /**
      * @dev Transfers attribute type `attrId` from token type `from` to `to`.
      *
      * Emits a {TransferSingle} event.
      */
-    function transferFrom(uint256 from, uint256 to, uint256 attrId) external;
+    function transferFrom(
+        uint256 from,
+        uint256 to,
+        uint256 attrId
+    ) external;
 }

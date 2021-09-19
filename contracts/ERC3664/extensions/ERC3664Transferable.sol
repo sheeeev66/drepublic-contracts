@@ -18,11 +18,14 @@ contract ERC3664Transferable is IERC3664Transferable, ERC3664Generic {
     address private _nft;
 
     modifier onlyHolder(uint256 tokenId) {
-        require(ITokenHolder(_nft).holderOf(tokenId) == _msgSender(), "ERC3664Transferable: caller is not the nft holder");
+        require(
+            ITokenHolder(_nft).holderOf(tokenId) == _msgSender(),
+            "ERC3664Transferable: caller is not the nft holder"
+        );
         _;
     }
 
-    constructor (address nft) ERC3664Generic() {
+    constructor(address nft) ERC3664Generic() {
         _nft = nft;
 
         _setupRole(TRANSFER_ROLE, _msgSender());
@@ -31,7 +34,11 @@ contract ERC3664Transferable is IERC3664Transferable, ERC3664Generic {
     /**
      * @dev See {IERC3664Transferable-isApproved}.
      */
-    function isApproved(uint256 from, uint256 to, uint256 attrId) public view virtual override returns (bool) {
+    function isApproved(
+        uint256 from,
+        uint256 to,
+        uint256 attrId
+    ) public view virtual override returns (bool) {
         return _allowances[attrId][from] == to;
     }
 
@@ -41,11 +48,17 @@ contract ERC3664Transferable is IERC3664Transferable, ERC3664Generic {
     function approve(
         uint256 from,
         uint256 to,
-        uint256 attrId)
-    public virtual override onlyHolder(from) {
-        require(from != 0, "ERC3664Transferable: approve from the zero address");
+        uint256 attrId
+    ) public virtual override onlyHolder(from) {
+        require(
+            from != 0,
+            "ERC3664Transferable: approve from the zero address"
+        );
         require(to != 0, "ERC3664Transferable: approve to the zero address");
-        require(!_hasAttr(to, attrId), "ERC3664Transferable: recipient token has already attached the attribute");
+        require(
+            !_hasAttr(to, attrId),
+            "ERC3664Transferable: recipient token has already attached the attribute"
+        );
 
         _allowances[attrId][from] = to;
 
@@ -62,14 +75,28 @@ contract ERC3664Transferable is IERC3664Transferable, ERC3664Generic {
     ) public virtual override {
         address operator = _msgSender();
         require(
-            ITokenHolder(_nft).holderOf(from) == operator || hasRole(TRANSFER_ROLE, operator),
+            ITokenHolder(_nft).holderOf(from) == operator ||
+                hasRole(TRANSFER_ROLE, operator),
             "ERC3664Transferable: caller no transfer access"
         );
-        require(isApproved(from, to, attrId), "ERC3664Transferable: nft holder not approve the attribute to recipient");
-        require(!_hasAttr(to, attrId), "ERC3664Transferable: recipient has attached the attribute");
+        require(
+            isApproved(from, to, attrId),
+            "ERC3664Transferable: nft holder not approve the attribute to recipient"
+        );
+        require(
+            !_hasAttr(to, attrId),
+            "ERC3664Transferable: recipient has attached the attribute"
+        );
 
         uint256 amount = _balances[attrId][from];
-        _beforeAttrTransfer(operator, from, to, _asSingletonArray(attrId), _asSingletonArray(amount), "");
+        _beforeAttrTransfer(
+            operator,
+            from,
+            to,
+            _asSingletonArray(attrId),
+            _asSingletonArray(amount),
+            ""
+        );
 
         _balances[attrId][to] = amount;
         delete _balances[attrId][from];

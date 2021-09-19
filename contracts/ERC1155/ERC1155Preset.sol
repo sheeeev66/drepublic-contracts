@@ -33,7 +33,10 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
      * @dev Require _msgSender() to be the creator of the token id
      */
     modifier creatorOnly(uint256 _id) {
-        require(creators[_id] == _msgSender(), "ERC1155Preset#creatorOnly: ONLY_CREATOR_ALLOWED");
+        require(
+            creators[_id] == _msgSender(),
+            "ERC1155Preset#creatorOnly: ONLY_CREATOR_ALLOWED"
+        );
         _;
     }
 
@@ -41,7 +44,10 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
      * @dev Require _msgSender() to own more than 0 of the token id
      */
     modifier ownersOnly(uint256 _id) {
-        require(balanceOf(_msgSender(), _id) > 0, "ERC1155Preset#ownersOnly: ONLY_OWNERS_ALLOWED");
+        require(
+            balanceOf(_msgSender(), _id) > 0,
+            "ERC1155Preset#ownersOnly: ONLY_OWNERS_ALLOWED"
+        );
         _;
     }
 
@@ -55,25 +61,21 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
     }
 
     /**
-      * @dev Returns the total quantity for a token ID
-      * @param _id uint256 ID of the token to query
-      * @return amount of token in existence
-      */
-    function totalSupply(
-        uint256 _id
-    ) public view returns (uint256) {
+     * @dev Returns the total quantity for a token ID
+     * @param _id uint256 ID of the token to query
+     * @return amount of token in existence
+     */
+    function totalSupply(uint256 _id) public view returns (uint256) {
         return tokenSupply[_id];
     }
 
     /**
      * @dev Sets a new URI for all token types, by relying on the token type ID
-      * substitution mechanism
-      * https://eips.ethereum.org/EIPS/eip-1155#metadata[defined in the EIP].
+     * substitution mechanism
+     * https://eips.ethereum.org/EIPS/eip-1155#metadata[defined in the EIP].
      * @param _newURI New URI for all tokens
      */
-    function setURI(
-        string memory _newURI
-    ) public onlyOwner {
+    function setURI(string memory _newURI) public onlyOwner {
         _setURI(_newURI);
     }
 
@@ -82,10 +84,10 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
      * @param _tokenId The token to update. _msgSender() must be its creator.
      * @param _newURI New URI for the token.
      */
-    function setCustomURI(
-        uint256 _tokenId,
-        string memory _newURI
-    ) public creatorOnly(_tokenId) {
+    function setCustomURI(uint256 _tokenId, string memory _newURI)
+        public
+        creatorOnly(_tokenId)
+    {
         customUri[_tokenId] = _newURI;
         emit URI(_newURI, _tokenId);
     }
@@ -95,23 +97,23 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
     }
 
     /**
-      * @dev Creates a new token type and assigns _initialSupply to an address
-      * NOTE: remove onlyOwner if you want third parties to create new tokens on
-      *       your contract (which may change your IDs)
-      * NOTE: The token id must be passed. This allows lazy creation of tokens or
-      *       creating NFTs by setting the id's high bits with the method
-      *       described in ERC1155 or to use ids representing values other than
-      *       successive small integers. If you wish to create ids as successive
-      *       small integers you can either subclass this class to count onchain
-      *       or maintain the offchain cache of identifiers recommended in
-      *       ERC1155 and calculate successive ids from that.
-      * @param _initialOwner address of the first owner of the token
-      * @param _id The id of the token to create (must not currenty exist).
-      * @param _initialSupply amount to supply the first owner
-      * @param _uri Optional URI for this token type
-      * @param _data Data to pass if receiver is contract
-      * @return The newly created token ID
-      */
+     * @dev Creates a new token type and assigns _initialSupply to an address
+     * NOTE: remove onlyOwner if you want third parties to create new tokens on
+     *       your contract (which may change your IDs)
+     * NOTE: The token id must be passed. This allows lazy creation of tokens or
+     *       creating NFTs by setting the id's high bits with the method
+     *       described in ERC1155 or to use ids representing values other than
+     *       successive small integers. If you wish to create ids as successive
+     *       small integers you can either subclass this class to count onchain
+     *       or maintain the offchain cache of identifiers recommended in
+     *       ERC1155 and calculate successive ids from that.
+     * @param _initialOwner address of the first owner of the token
+     * @param _id The id of the token to create (must not currenty exist).
+     * @param _initialSupply amount to supply the first owner
+     * @param _uri Optional URI for this token type
+     * @param _data Data to pass if receiver is contract
+     * @return The newly created token ID
+     */
     function create(
         address _initialOwner,
         uint256 _id,
@@ -119,7 +121,10 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
         string memory _uri,
         bytes memory _data
     ) public onlyOwner returns (uint256) {
-        require(!_exists(_id), "ERC1155Preset#create: token _id already exists");
+        require(
+            !_exists(_id),
+            "ERC1155Preset#create: token _id already exists"
+        );
         creators[_id] = _msgSender();
 
         if (bytes(_uri).length > 0) {
@@ -134,29 +139,29 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
     }
 
     /**
-      * @dev Mints some amount of tokens to an address
-      * @param _to          Address of the future owner of the token
-      * @param _id          Token ID to mint
-      * @param _quantity    Amount of tokens to mint
-      * @param _data        Data to pass if receiver is contract
-      */
+     * @dev Mints some amount of tokens to an address
+     * @param _to          Address of the future owner of the token
+     * @param _id          Token ID to mint
+     * @param _quantity    Amount of tokens to mint
+     * @param _data        Data to pass if receiver is contract
+     */
     function mint(
         address _to,
         uint256 _id,
         uint256 _quantity,
         bytes memory _data
-    ) virtual public creatorOnly(_id) {
+    ) public virtual creatorOnly(_id) {
         _mint(_to, _id, _quantity, _data);
         tokenSupply[_id] = tokenSupply[_id].add(_quantity);
     }
 
     /**
-      * @dev Mint tokens for each id in _ids
-      * @param _to          The address to mint tokens to
-      * @param _ids         Array of ids to mint
-      * @param _quantities  Array of amounts of tokens to mint per id
-      * @param _data        Data to pass if receiver is contract
-      */
+     * @dev Mint tokens for each id in _ids
+     * @param _to          The address to mint tokens to
+     * @param _ids         Array of ids to mint
+     * @param _quantities  Array of amounts of tokens to mint per id
+     * @param _data        Data to pass if receiver is contract
+     */
     function batchMint(
         address _to,
         uint256[] calldata _ids,
@@ -165,7 +170,10 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
     ) public {
         for (uint256 i = 0; i < _ids.length; i++) {
             uint256 _id = _ids[i];
-            require(creators[_id] == _msgSender(), "ERC1155Preset#batchMint: ONLY_CREATOR_ALLOWED");
+            require(
+                creators[_id] == _msgSender(),
+                "ERC1155Preset#batchMint: ONLY_CREATOR_ALLOWED"
+            );
             uint256 quantity = _quantities[i];
             tokenSupply[_id] = tokenSupply[_id].add(quantity);
         }
@@ -178,11 +186,7 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
      * @param _id     Asset id to burn
      * @param _quantity The amount to be burn
      */
-    function burn(
-        uint256 _id,
-        uint256 _quantity
-    ) public ownersOnly(_id)
-    {
+    function burn(uint256 _id, uint256 _quantity) public ownersOnly(_id) {
         _burn(_msgSender(), _id, _quantity);
         tokenSupply[_id] = tokenSupply[_id].sub(_quantity);
     }
@@ -193,14 +197,15 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
      * @param _ids     Asset id to burn
      * @param _quantities The amount to be burn
      */
-    function batchBurn(
-        uint256[] calldata _ids,
-        uint256[] calldata _quantities
-    ) public
+    function batchBurn(uint256[] calldata _ids, uint256[] calldata _quantities)
+        public
     {
         for (uint256 i = 0; i < _ids.length; i++) {
             uint256 _id = _ids[i];
-            require(balanceOf(_msgSender(), _id) > 0, "ERC1155Preset#ownersOnly: ONLY_OWNERS_ALLOWED");
+            require(
+                balanceOf(_msgSender(), _id) > 0,
+                "ERC1155Preset#ownersOnly: ONLY_OWNERS_ALLOWED"
+            );
             uint256 quantity = _quantities[i];
             tokenSupply[_id] = tokenSupply[_id].sub(quantity);
         }
@@ -208,14 +213,14 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
     }
 
     /**
-      * @dev Pauses all token transfers.
-      *
-      * See {ERC1155Pausable} and {Pausable-_pause}.
-      *
-      * Requirements:
-      *
-      * - the caller must contract owner.
-      */
+     * @dev Pauses all token transfers.
+     *
+     * See {ERC1155Pausable} and {Pausable-_pause}.
+     *
+     * Requirements:
+     *
+     * - the caller must contract owner.
+     */
     function pause() public onlyOwner {
         _pause();
     }
@@ -234,15 +239,15 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
     }
 
     /**
-      * @dev Change the creator address for given tokens
-      * @param _to   Address of the new creator
-      * @param _ids  Array of Token IDs to change creator
-      */
-    function setCreator(
-        address _to,
-        uint256[] memory _ids
-    ) public {
-        require(_to != address(0), "ERC1155Preset#setCreator: INVALID_ADDRESS.");
+     * @dev Change the creator address for given tokens
+     * @param _to   Address of the new creator
+     * @param _ids  Array of Token IDs to change creator
+     */
+    function setCreator(address _to, uint256[] memory _ids) public {
+        require(
+            _to != address(0),
+            "ERC1155Preset#setCreator: INVALID_ADDRESS."
+        );
         for (uint256 i = 0; i < _ids.length; i++) {
             uint256 id = _ids[i];
             _setCreator(_to, id);
@@ -253,39 +258,34 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(ERC1155)
-    returns (bool)
+        public
+        view
+        virtual
+        override(ERC1155)
+        returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     /**
-      * @dev Change the creator address for given token
-      * @param _to   Address of the new creator
-      * @param _id  Token IDs to change creator of
-      */
-    function _setCreator(address _to, uint256 _id) internal creatorOnly(_id)
-    {
+     * @dev Change the creator address for given token
+     * @param _to   Address of the new creator
+     * @param _id  Token IDs to change creator of
+     */
+    function _setCreator(address _to, uint256 _id) internal creatorOnly(_id) {
         creators[_id] = _to;
     }
 
     /**
-      * @dev Returns whether the specified token exists by checking to see if it has a creator
-      * @param _id uint256 ID of the token to query the existence of
-      * @return bool whether the token exists
-      */
-    function _exists(
-        uint256 _id
-    ) internal view returns (bool) {
+     * @dev Returns whether the specified token exists by checking to see if it has a creator
+     * @param _id uint256 ID of the token to query the existence of
+     * @return bool whether the token exists
+     */
+    function _exists(uint256 _id) internal view returns (bool) {
         return creators[_id] != address(0);
     }
 
-    function exists(
-        uint256 _id
-    ) external view returns (bool) {
+    function exists(uint256 _id) external view returns (bool) {
         return _exists(_id);
     }
 }

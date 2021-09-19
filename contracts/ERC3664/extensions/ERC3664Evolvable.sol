@@ -6,7 +6,6 @@ import "./IERC3664Evolvable.sol";
 import "./ERC3664Generic.sol";
 
 contract ERC3664Evolvable is ERC3664Generic, IERC3664Evolvable {
-
     bytes32 public constant EVOLUTIVER_ROLE = keccak256("EVOLUTIVER_ROLE");
 
     struct EvolutiveSettings {
@@ -30,11 +29,16 @@ contract ERC3664Evolvable is ERC3664Generic, IERC3664Evolvable {
     // attribute ID => token ID => evolutive state
     mapping(uint256 => mapping(uint256 => EvolutiveState)) private _states;
 
-    constructor () ERC3664Generic() {
+    constructor() ERC3664Generic() {
         _setupRole(EVOLUTIVER_ROLE, _msgSender());
     }
 
-    function period(uint256 tokenId, uint256 attrId) public view override returns (uint256) {
+    function period(uint256 tokenId, uint256 attrId)
+        public
+        view
+        override
+        returns (uint256)
+    {
         if (_states[attrId][tokenId].nextEvolutiveBlock > block.number) {
             return _states[attrId][tokenId].nextEvolutiveBlock - block.number;
         }
@@ -49,12 +53,17 @@ contract ERC3664Evolvable is ERC3664Generic, IERC3664Evolvable {
         uint8[] memory probabilities,
         uint256[] memory evolutiveIntervals
     ) public {
-        require(probabilities.length == evolutiveIntervals.length,
-            "ERC3664Evolvable: probabilities and evolutiveIntervals length mismatch");
+        require(
+            probabilities.length == evolutiveIntervals.length,
+            "ERC3664Evolvable: probabilities and evolutiveIntervals length mismatch"
+        );
 
         super.mint(attrId, name, symbol, uri);
 
-        _settings[attrId] = EvolutiveSettings(probabilities, evolutiveIntervals);
+        _settings[attrId] = EvolutiveSettings(
+            probabilities,
+            evolutiveIntervals
+        );
     }
 
     function attach(
@@ -66,18 +75,40 @@ contract ERC3664Evolvable is ERC3664Generic, IERC3664Evolvable {
     ) public virtual override(ERC3664Generic, IERC3664) {
         super.attach(tokenId, attrId, amount, text, isPrimary);
 
-        _states[attrId][tokenId] = EvolutiveState(1, block.number, block.number +
-            _settings[attrId].evolutiveIntervals[0], true);
+        _states[attrId][tokenId] = EvolutiveState(
+            1,
+            block.number,
+            block.number + _settings[attrId].evolutiveIntervals[0],
+            true
+        );
     }
 
-    function evolutive(uint256 tokenId, uint256 attrId) public virtual override {
-        require(hasRole(EVOLUTIVER_ROLE, _msgSender()), "ERC3664Evolvable: must have evolutiver role to evolutive");
-        require(_hasAttr(tokenId, attrId), "ERC3664Evolvable: token has not attached the attribute");
-        require(_states[attrId][tokenId].status, "ERC3664Evolvable: token has broken");
+    function evolutive(uint256 tokenId, uint256 attrId)
+        public
+        virtual
+        override
+    {
+        require(
+            hasRole(EVOLUTIVER_ROLE, _msgSender()),
+            "ERC3664Evolvable: must have evolutiver role to evolutive"
+        );
+        require(
+            _hasAttr(tokenId, attrId),
+            "ERC3664Evolvable: token has not attached the attribute"
+        );
+        require(
+            _states[attrId][tokenId].status,
+            "ERC3664Evolvable: token has broken"
+        );
         uint8 curLv = _states[attrId][tokenId].curLevel;
-        require(curLv <= _settings[attrId].probabilities.length, "ERC3664Evolvable: exceeded the maximum level");
-        require(block.number >= _states[attrId][tokenId].nextEvolutiveBlock,
-            "EvolvableAttribute: did not reach evolution time");
+        require(
+            curLv <= _settings[attrId].probabilities.length,
+            "ERC3664Evolvable: exceeded the maximum level"
+        );
+        require(
+            block.number >= _states[attrId][tokenId].nextEvolutiveBlock,
+            "EvolvableAttribute: did not reach evolution time"
+        );
 
         // random evolutive
         EvolutiveState storage s = _states[attrId][tokenId];
@@ -95,35 +126,45 @@ contract ERC3664Evolvable is ERC3664Generic, IERC3664Evolvable {
     }
 
     function repair(uint256 tokenId, uint256 attrId) public virtual override {
-        require(hasRole(EVOLUTIVER_ROLE, _msgSender()), "ERC3664Evolvable: must have evolutiver role to repair");
-        require(_hasAttr(tokenId, attrId), "ERC3664Evolvable: token has not attached the attribute");
-        require(!_states[attrId][tokenId].status, "ERC3664Evolvable: token is normal");
+        require(
+            hasRole(EVOLUTIVER_ROLE, _msgSender()),
+            "ERC3664Evolvable: must have evolutiver role to repair"
+        );
+        require(
+            _hasAttr(tokenId, attrId),
+            "ERC3664Evolvable: token has not attached the attribute"
+        );
+        require(
+            !_states[attrId][tokenId].status,
+            "ERC3664Evolvable: token is normal"
+        );
 
         EvolutiveState storage s = _states[attrId][tokenId];
         s.status = true;
-        s.nextEvolutiveBlock = block.number + _settings[attrId].evolutiveIntervals[s.curLevel - 1];
+        s.nextEvolutiveBlock =
+            block.number +
+            _settings[attrId].evolutiveIntervals[s.curLevel - 1];
 
         emit AttributeRepaired(_msgSender(), tokenId, attrId);
     }
 
     function _seed(address _user, uint256 _supply)
-    internal
-    view
-    returns (uint256)
+        internal
+        view
+        returns (uint256)
     {
         return
-        uint256(
             uint256(
-                keccak256(
-                    abi.encodePacked(
-                        _user,
-                        block.number,
-                        block.timestamp,
-                        block.difficulty
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            _user,
+                            block.number,
+                            block.timestamp,
+                            block.difficulty
+                        )
                     )
-                )
-            ) % _supply
-        );
+                ) % _supply
+            );
     }
-
 }

@@ -2,15 +2,15 @@
 
 ## Install
 ```
-yarn install
+npm install
 ```
 
 ## Deploy
 ```
-truffle migrate --network binancetest
+truffle migrate --network development
 ```
 
 ## Testing
 ```
-truffle test
+npm run test
 ```

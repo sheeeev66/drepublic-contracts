@@ -21,7 +21,10 @@ interface IERC3664Evolvable is IERC3664Metadata {
         uint256 attrId
     );
 
-    function period(uint256 tokenId, uint256 attrId) external view returns (uint256);
+    function period(uint256 tokenId, uint256 attrId)
+        external
+        view
+        returns (uint256);
 
     function evolutive(uint256 tokenId, uint256 attrId) external;
 
