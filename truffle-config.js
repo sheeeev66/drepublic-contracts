@@ -11,7 +11,7 @@ module.exports = {
     development: {
       host: 'localhost',
       port: 7545,
-      gas: 5000000,
+      gas: 8000000,
       network_id: '*',
     },
     rinkeby: {
@@ -81,7 +81,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: '^0.8.0', // Fetch exact version from solc-bin (default: truffle's version)
+      version: '0.8.7', // Fetch exact version from solc-bin (default: truffle's version)
       settings: { // See the solidity docs for advice about optimization and evmVersion
         optimizer: {
           enabled: true,

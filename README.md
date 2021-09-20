@@ -14,3 +14,8 @@ truffle migrate --network development
 ```
 npm run test
 ```
+
+## Publish & Verify
+```
+truffle run verify Metacore --network development
+```

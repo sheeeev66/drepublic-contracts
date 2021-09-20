@@ -11,7 +11,8 @@
     "lint:fix": "npm run lint:js:fix && npm run lint:sol:fix",
     "lint:js:fix": "eslint --ignore-path .gitignore . --fix",
     "lint:sol:fix": "prettier --write \"contracts/**/*.sol\"",
-    "gas-report": "env ENABLE_GAS_REPORT=true npm run test"
+    "gas-report": "env ENABLE_GAS_REPORT=true npm run test",
+    "flatten": "sh flatten.sh"
   },
   "repository": {
     "type": "git",
