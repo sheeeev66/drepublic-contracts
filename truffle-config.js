@@ -15,48 +15,35 @@ module.exports = {
       network_id: '*',
     },
     rinkeby: {
-      provider: () =>
-        new HDWalletProvider(
-          mnemonic,
-          `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`,
-        ),
+      provider: () => new HDWalletProvider(mnemonic, `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`),
       network_id: 4,
       gas: 8000000,
       skipDryRun: true,
     },
     matic: {
-      provider: () =>
-        new HDWalletProvider(
-          mnemonic,
-          `https://polygon-mainnet.infura.io/v3/${INFURA_API_KEY}`,
-        ),
+      provider: () => new HDWalletProvider(mnemonic, `https://polygon-mainnet.infura.io/v3/${INFURA_API_KEY}`),
       network_id: '137',
       gas: 8000000,
       gasPrice: '90000000000',
+      skipDryRun: true,
     },
     mumbai: {
-      provider: () =>
-        new HDWalletProvider(
-          mnemonic,
-          `https://polygon-mumbai.infura.io/v3/${INFURA_API_KEY}`,
-        ),
+      provider: () => new HDWalletProvider(mnemonic, `https://polygon-mumbai.infura.io/v3/${INFURA_API_KEY}`),
       network_id: 80001,
       gas: 8000000,
       skipDryRun: true,
     },
     bsclive: {
-      provider: () => new HDWalletProvider(mnemonic,
-        'https://bsc-dataseed1.binance.org/',
-      ),
+      provider: () => new HDWalletProvider(mnemonic, 'https://bsc-dataseed1.binance.org/'),
       network_id: '56',
       gas: 8000000,
+      skipDryRun: true,
     },
     bsctest: {
-      provider: () => new HDWalletProvider(mnemonic,
-        'https://data-seed-prebsc-1-s1.binance.org:8545/',
-      ),
+      provider: () => new HDWalletProvider(mnemonic, 'https://data-seed-prebsc-1-s1.binance.org:8545/'),
       network_id: '97',
       gas: 8000000,
+      skipDryRun: true,
     },
     // Another network with more advanced options...
     // advanced: {
@@ -66,6 +53,17 @@ module.exports = {
     // gasPrice: 20000000000,  // 20 gwei (in wei) (default: 100 gwei)
     // from: <address>,        // Account to send txs from (default: accounts[0])
     // websocket: true        // Enable EventEmitter interface for web3 (default: false)
+    // },
+
+    // Useful for deploying to a public network.
+    // NB: It's important to wrap the provider as a function.
+    // ropsten: {
+    // provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/${INFURA_API_KEY}`),
+    // network_id: 3,       // Ropsten's id
+    // gas: 5500000,        // Ropsten has a lower block limit than mainnet
+    // confirmations: 2,    // # of confs to wait between deployments. (default: 0)
+    // timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
+    // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     // },
   },
 

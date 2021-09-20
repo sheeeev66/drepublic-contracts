@@ -7,7 +7,7 @@ npm install
 
 ## Deploy
 ```
-truffle migrate --network development
+truffle migrate --f 2 --to 3 --network development  
 ```
 
 ## Testing

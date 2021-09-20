@@ -1,7 +1,7 @@
-const DRepublic = artifacts.require('../contracts/DRepublic.sol');
-const NFTFactory = artifacts.require('../contracts/NFTFactory.sol');
-const NFTBlindBox = artifacts.require('../contracts/NFTBlindBox.sol');
-const NFTIncubator = artifacts.require('../contracts/NFTIncubator.sol');
+const DRepublic = artifacts.require('DRepublic.sol');
+const NFTFactory = artifacts.require('NFTFactory.sol');
+const NFTBlindBox = artifacts.require('NFTBlindBox.sol');
+const NFTIncubator = artifacts.require('NFTIncubator.sol');
 
 module.exports = async (deployer) => {
   await deployer.deploy(NFTFactory, 'DRepublic NFT', 'DRPC', 'https://www.cradles.io/dragontar/');
