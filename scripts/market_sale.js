@@ -80,7 +80,7 @@ async function main () {
     await marketInstance.methods.setSalePool(nftAddress, tokenId + 6, 20, '130000000000000000', '1', 1632466800).send({ from: caller }));
 
   console.log('create token#7 sale pool',
-    await marketInstance.methods.setSalePool(nftAddress, tokenId + 6, 20, '80000000000000000', '1', 1632466800).send({ from: caller }));
+    await marketInstance.methods.setSalePool(nftAddress, tokenId + 7, 20, '80000000000000000', '1', 1632466800).send({ from: caller }));
 
   console.log('query sale pool details',
     await marketInstance.methods.salePools(nftAddress, tokenId + 1).call());
