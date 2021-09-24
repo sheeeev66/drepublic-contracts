@@ -17,7 +17,7 @@ module.exports = {
     rinkeby: {
       provider: () => new HDWalletProvider(mnemonic, `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`),
       network_id: 4,
-      gas: 8000000,
+      gas: 9000000,
       skipDryRun: true,
     },
     matic: {
@@ -83,7 +83,7 @@ module.exports = {
       settings: { // See the solidity docs for advice about optimization and evmVersion
         optimizer: {
           enabled: true,
-          runs: 200,
+          runs: 20,
         },
         evmVersion: 'istanbul',
       },

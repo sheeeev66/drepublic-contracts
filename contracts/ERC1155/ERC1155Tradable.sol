@@ -2,23 +2,24 @@
 
 pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "openzeppelin-solidity/contracts/access/AccessControlEnumerable.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/utils/Address.sol";
 import "openzeppelin-solidity/contracts/utils/Strings.sol";
-import "openzeppelin-solidity/contracts/token/ERC1155/ERC1155.sol";
-import "openzeppelin-solidity/contracts/token/ERC1155/IERC1155Receiver.sol";
-import "openzeppelin-solidity/contracts/token/ERC1155/extensions/ERC1155Pausable.sol";
+import "openzeppelin-solidity/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 
 /**
- * @title ERC1155Preset
- * ERC1155Preset - ERC1155 contract has create and mint functionality, and supports useful standards from OpenZeppelin,
+ * @title ERC1155Tradable
+ * ERC1155Tradable - ERC1155 contract has create and mint functionality, and supports useful standards from OpenZeppelin,
   like _exists(), name(), symbol(), and totalSupply()
  */
-contract ERC1155Preset is ERC1155Pausable, Ownable {
+contract ERC1155Tradable is ERC1155Burnable, AccessControlEnumerable {
     using Address for address;
     using Strings for uint256;
     using SafeMath for uint256;
+
+    bytes32 public constant CREATOR_ROLE = keccak256("CREATOR_ROLE");
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     mapping(uint256 => address) public creators;
     mapping(uint256 => uint256) public tokenSupply;
@@ -29,28 +30,6 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
     // Contract symbol
     string public symbol;
 
-    /**
-     * @dev Require _msgSender() to be the creator of the token id
-     */
-    modifier creatorOnly(uint256 _id) {
-        require(
-            creators[_id] == _msgSender(),
-            "ERC1155Preset#creatorOnly: ONLY_CREATOR_ALLOWED"
-        );
-        _;
-    }
-
-    /**
-     * @dev Require _msgSender() to own more than 0 of the token id
-     */
-    modifier ownersOnly(uint256 _id) {
-        require(
-            balanceOf(_msgSender(), _id) > 0,
-            "ERC1155Preset#ownersOnly: ONLY_OWNERS_ALLOWED"
-        );
-        _;
-    }
-
     constructor(
         string memory _name,
         string memory _symbol,
@@ -58,6 +37,9 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
     ) ERC1155(_uri) {
         name = _name;
         symbol = _symbol;
+
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _setupRole(CREATOR_ROLE, _msgSender());
     }
 
     /**
@@ -75,7 +57,11 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
      * https://eips.ethereum.org/EIPS/eip-1155#metadata[defined in the EIP].
      * @param _newURI New URI for all tokens
      */
-    function setURI(string memory _newURI) public onlyOwner {
+    function setURI(string memory _newURI) public {
+        require(
+            hasRole(DEFAULT_ADMIN_ROLE, _msgSender()),
+            "ERC1155Tradable: must have creator role"
+        );
         _setURI(_newURI);
     }
 
@@ -84,10 +70,12 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
      * @param _tokenId The token to update. _msgSender() must be its creator.
      * @param _newURI New URI for the token.
      */
-    function setCustomURI(uint256 _tokenId, string memory _newURI)
-        public
-        creatorOnly(_tokenId)
-    {
+    function setCustomURI(uint256 _tokenId, string memory _newURI) public {
+        require(
+            creators[_tokenId] == _msgSender(),
+            "ERC1155Tradable: only creator allowed"
+        );
+
         customUri[_tokenId] = _newURI;
         emit URI(_newURI, _tokenId);
     }
@@ -111,20 +99,19 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
      * @param _id The id of the token to create (must not currenty exist).
      * @param _initialSupply amount to supply the first owner
      * @param _uri Optional URI for this token type
-     * @param _data Data to pass if receiver is contract
-     * @return The newly created token ID
      */
     function create(
         address _initialOwner,
         uint256 _id,
         uint256 _initialSupply,
-        string memory _uri,
-        bytes memory _data
-    ) public onlyOwner returns (uint256) {
+        string memory _uri
+    ) public returns (uint256) {
         require(
-            !_exists(_id),
-            "ERC1155Preset#create: token _id already exists"
+            hasRole(CREATOR_ROLE, _msgSender()),
+            "ERC1155Tradable: must have creator role"
         );
+        require(!_exists(_id), "ERC1155Tradable: token _id already exists");
+
         creators[_id] = _msgSender();
 
         if (bytes(_uri).length > 0) {
@@ -132,7 +119,7 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
             emit URI(_uri, _id);
         }
 
-        _mint(_initialOwner, _id, _initialSupply, _data);
+        _mint(_initialOwner, _id, _initialSupply, "");
 
         tokenSupply[_id] = _initialSupply;
         return _id;
@@ -150,7 +137,12 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
         uint256 _id,
         uint256 _quantity,
         bytes memory _data
-    ) public virtual creatorOnly(_id) {
+    ) public virtual {
+        require(
+            creators[_id] == _msgSender() || hasRole(MINTER_ROLE, _msgSender()),
+            "ERC1155Tradable: only creator or has minter role can mint"
+        );
+
         _mint(_to, _id, _quantity, _data);
         tokenSupply[_id] = tokenSupply[_id].add(_quantity);
     }
@@ -171,8 +163,9 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
         for (uint256 i = 0; i < _ids.length; i++) {
             uint256 _id = _ids[i];
             require(
-                creators[_id] == _msgSender(),
-                "ERC1155Preset#batchMint: ONLY_CREATOR_ALLOWED"
+                creators[_id] == _msgSender() ||
+                    hasRole(MINTER_ROLE, _msgSender()),
+                "ERC1155Tradable: only creator or has minter role can mint"
             );
             uint256 quantity = _quantities[i];
             tokenSupply[_id] = tokenSupply[_id].add(quantity);
@@ -186,8 +179,13 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
      * @param _id     Asset id to burn
      * @param _quantity The amount to be burn
      */
-    function burn(uint256 _id, uint256 _quantity) public ownersOnly(_id) {
-        _burn(_msgSender(), _id, _quantity);
+    function burn(
+        address _account,
+        uint256 _id,
+        uint256 _quantity
+    ) public virtual override {
+        super.burn(_account, _id, _quantity);
+
         tokenSupply[_id] = tokenSupply[_id].sub(_quantity);
     }
 
@@ -197,45 +195,18 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
      * @param _ids     Asset id to burn
      * @param _quantities The amount to be burn
      */
-    function batchBurn(uint256[] calldata _ids, uint256[] calldata _quantities)
-        public
-    {
+    function burnBatch(
+        address _account,
+        uint256[] calldata _ids,
+        uint256[] calldata _quantities
+    ) public virtual override {
+        super.burnBatch(_account, _ids, _quantities);
+
         for (uint256 i = 0; i < _ids.length; i++) {
             uint256 _id = _ids[i];
-            require(
-                balanceOf(_msgSender(), _id) > 0,
-                "ERC1155Preset#ownersOnly: ONLY_OWNERS_ALLOWED"
-            );
             uint256 quantity = _quantities[i];
             tokenSupply[_id] = tokenSupply[_id].sub(quantity);
         }
-        _burnBatch(msg.sender, _ids, _quantities);
-    }
-
-    /**
-     * @dev Pauses all token transfers.
-     *
-     * See {ERC1155Pausable} and {Pausable-_pause}.
-     *
-     * Requirements:
-     *
-     * - the caller must contract owner.
-     */
-    function pause() public onlyOwner {
-        _pause();
-    }
-
-    /**
-     * @dev Unpauses all token transfers.
-     *
-     * See {ERC1155Pausable} and {Pausable-_unpause}.
-     *
-     * Requirements:
-     *
-     * - the caller must contract owner.
-     */
-    function unpause() public onlyOwner {
-        _unpause();
     }
 
     /**
@@ -244,13 +215,14 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
      * @param _ids  Array of Token IDs to change creator
      */
     function setCreator(address _to, uint256[] memory _ids) public {
-        require(
-            _to != address(0),
-            "ERC1155Preset#setCreator: INVALID_ADDRESS."
-        );
+        require(_to != address(0), "ERC1155Tradable: invalid address.");
         for (uint256 i = 0; i < _ids.length; i++) {
             uint256 id = _ids[i];
-            _setCreator(_to, id);
+            require(
+                creators[id] == _msgSender(),
+                "ERC1155Tradable: only creator allowed"
+            );
+            creators[id] = _to;
         }
     }
 
@@ -261,19 +233,10 @@ contract ERC1155Preset is ERC1155Pausable, Ownable {
         public
         view
         virtual
-        override(ERC1155)
+        override(ERC1155, AccessControlEnumerable)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
-    }
-
-    /**
-     * @dev Change the creator address for given token
-     * @param _to   Address of the new creator
-     * @param _id  Token IDs to change creator of
-     */
-    function _setCreator(address _to, uint256 _id) internal creatorOnly(_id) {
-        creators[_id] = _to;
     }
 
     /**

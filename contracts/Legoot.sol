@@ -123,12 +123,12 @@ contract Legoot is
 
     function claim(uint256 tokenId) public payable nonReentrant {
         require(tokenId > 0 && tokenId < 7981, "Token ID invalid");
-        //        uint256 amount = msg.value;
-        //        require(amount >= 15 * 10 ** 16, "Payed too low value");
-        //        Address.sendValue(treasury, 15 * 10 ** 16);
+        uint256 amount = msg.value;
+        require(amount >= 15 * 10**16, "Payed too low value");
+        Address.sendValue(treasury, 15 * 10**16);
         _safeMint(_msgSender(), tokenId);
         _afterTokenMint(tokenId);
-        //        emit Claimed(treasury, amount, tokenId);
+        emit Claimed(treasury, amount, tokenId);
     }
 
     function ownerClaim(uint256 tokenId) public nonReentrant onlyOwner {

@@ -2,17 +2,18 @@
 
 pragma solidity ^0.8.0;
 
-import "./ERC1155/ERC1155Preset.sol";
+import "./ERC1155/ERC1155Tradable.sol";
 import "./ERC3664/IERC3664.sol";
+import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/token/ERC1155/extensions/ERC1155Pausable.sol";
+import "openzeppelin-solidity/contracts/token/ERC1155/ERC1155.sol";
 
 /**
  * @title NFTFactory
  * NFTFactory - ERC1155 contract has create and mint functionality, and supports useful standards from OpenZeppelin,
   like _exists(), name(), symbol(), and totalSupply()
  */
-contract NFTFactory is ERC1155Preset {
+contract NFTFactory is ERC1155Tradable, Ownable {
     using SafeMath for uint256;
 
     uint256 private _currentNFTId = 0;
@@ -26,7 +27,7 @@ contract NFTFactory is ERC1155Preset {
         string memory _name,
         string memory _symbol,
         string memory _uri
-    ) ERC1155Preset(_name, _symbol, _uri) {}
+    ) ERC1155Tradable(_name, _symbol, _uri) {}
 
     function registerAttribute(uint16 _class, address _attr) public onlyOwner {
         attributes[_class] = _attr;
@@ -99,7 +100,7 @@ contract NFTFactory is ERC1155Preset {
             _texts
         );
 
-        tokenId = create(_initialOwner, _id, 1, "", "");
+        tokenId = create(_initialOwner, _id, 1, "");
     }
 
     function batchCreateNFT(
@@ -141,7 +142,7 @@ contract NFTFactory is ERC1155Preset {
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    ) internal virtual override(ERC1155Pausable) {
+    ) internal virtual override(ERC1155) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
 
         for (uint256 i = 0; i < ids.length; i++) {
