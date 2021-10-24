@@ -50,6 +50,14 @@ interface IERC3664 is IERC165 {
         returns (uint256);
 
     /**
+     * @dev Returns the list of attributes in json format.
+     */
+    function printAttributes(uint256 tokenId)
+        external
+        view
+        returns (string memory);
+
+    /**
      * @dev Returns all attribute types of owned by `tokenId`.
      */
     function attributesOf(uint256 tokenId)

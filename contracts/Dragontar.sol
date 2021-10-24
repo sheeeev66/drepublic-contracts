@@ -6,6 +6,7 @@ import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "./ERC3664/extensions/ERC3664TextBased.sol";
 import "./ERC3664/extensions/ERC3664Transferable.sol";
+import "./utils/Base64.sol";
 
 interface IDragontarData {
     function getBackground(uint256 tokenId)
@@ -65,6 +66,8 @@ contract Dragontar is
     ERC721Enumerable,
     ReentrancyGuard
 {
+    using Strings for uint256;
+
     address public constant DragontarData =
         0xE98C358718d9D7916371a824C04d5eC5db5aBf6e;
 
@@ -128,5 +131,51 @@ contract Dragontar is
         attachWithText(_curTokenId, 9, uint256(score), bytes(text));
         (text, score) = IDragontarData(DragontarData).getTooth(_curTokenId);
         attachWithText(_curTokenId, 10, uint256(score), bytes(text));
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override
+        returns (string memory)
+    {
+        string memory json = Base64.encode(
+            bytes(
+                string(
+                    abi.encodePacked(
+                        '{"name": "Dragontar #',
+                        tokenId.toString(),
+                        '", "description": "DRepublic dragon avatar", "attributes":[',
+                        printAttributes(tokenId),
+                        "]}"
+                    )
+                )
+            )
+        );
+        return string(abi.encodePacked("data:application/json;base64,", json));
+    }
+
+    function fullIdOf(uint256 tokenId) public view returns (string memory) {
+        bytes memory data = "";
+        uint256[] memory ma = attributesOf(tokenId);
+        for (uint256 i = 0; i < ma.length; i++) {
+            data = abi.encodePacked(data, textOf(tokenId, ma[i]));
+        }
+        return string(data);
+    }
+
+    function rarityOf(uint256 tokenId) public view returns (string memory) {
+        uint256 score = 0;
+        uint256[] memory ma = attributesOf(tokenId);
+        for (uint256 i = 0; i < ma.length; i++) {
+            score += balanceOf(tokenId, ma[i]);
+        }
+        if (score <= 12) {
+            return "R";
+        } else if (score <= 16) {
+            return "SR";
+        } else {
+            return "SSR";
+        }
     }
 }

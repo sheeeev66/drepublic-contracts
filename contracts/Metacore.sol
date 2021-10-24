@@ -232,6 +232,7 @@ contract Metacore is
                 '"}'
             );
         }
+
         uint256[] memory attrs = attributesOf(tokenId);
         for (uint256 i = 0; i < attrs.length; i++) {
             if (data.length > 0) {

@@ -112,6 +112,34 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
     }
 
     /**
+     * @dev See {IERC3664-printAttributes}.
+     */
+    function printAttributes(uint256 tokenId)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
+        bytes memory data = "";
+        uint256[] memory ma = attrs[tokenId];
+        for (uint256 i = 0; i < ma.length; i++) {
+            if (data.length > 0) {
+                data = abi.encodePacked(data, ",");
+            }
+            data = abi.encodePacked(
+                data,
+                '{"trait_type":"',
+                symbol(ma[i]),
+                '","value":"',
+                balanceOf(tokenId, ma[i]).toString(),
+                '"}'
+            );
+        }
+        return string(data);
+    }
+
+    /**
      * @dev See {IERC3664-primaryAttributeOf}.
      */
     function primaryAttributeOf(uint256 tokenId)
