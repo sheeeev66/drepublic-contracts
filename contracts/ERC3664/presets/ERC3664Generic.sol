@@ -2,15 +2,14 @@
 
 pragma solidity ^0.8.0;
 
-import "openzeppelin-solidity/contracts/utils/Context.sol";
-import "openzeppelin-solidity/contracts/access/AccessControlEnumerable.sol";
 import "../ERC3664.sol";
+import "openzeppelin-solidity/contracts/access/AccessControlEnumerable.sol";
 
-contract ERC3664Generic is Context, AccessControlEnumerable, ERC3664 {
+contract ERC3664Generic is ERC3664, AccessControlEnumerable {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant ATTACH_ROLE = keccak256("ATTACH_ROLE");
 
-    constructor() ERC3664() {
+    constructor(string memory uri_) ERC3664(uri_) {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
         _setupRole(MINTER_ROLE, _msgSender());
@@ -23,7 +22,7 @@ contract ERC3664Generic is Context, AccessControlEnumerable, ERC3664 {
      * See {ERC3664-_mint}.
      */
     function mint(
-        uint256 attrId,
+        uint256 _attrId,
         string memory _name,
         string memory _symbol,
         string memory _uri
@@ -33,7 +32,7 @@ contract ERC3664Generic is Context, AccessControlEnumerable, ERC3664 {
             "ERC3664Generic: must have minter role to mint"
         );
 
-        _mint(attrId, _name, _symbol, _uri);
+        _mint(_attrId, _name, _symbol, _uri);
     }
 
     /**
@@ -59,16 +58,14 @@ contract ERC3664Generic is Context, AccessControlEnumerable, ERC3664 {
     function attach(
         uint256 tokenId,
         uint256 attrId,
-        uint256 amount,
-        bytes memory text,
-        bool isPrimary
+        uint256 amount
     ) public virtual override {
         require(
             hasRole(ATTACH_ROLE, _msgSender()),
             "ERC3664Generic: must have attach role to attach"
         );
 
-        super.attach(tokenId, attrId, amount, text, isPrimary);
+        super.attach(tokenId, attrId, amount);
     }
 
     /**
@@ -77,15 +74,14 @@ contract ERC3664Generic is Context, AccessControlEnumerable, ERC3664 {
     function batchAttach(
         uint256 tokenId,
         uint256[] calldata attrIds,
-        uint256[] calldata amounts,
-        bytes[] calldata texts
+        uint256[] calldata amounts
     ) public virtual override {
         require(
             hasRole(ATTACH_ROLE, _msgSender()),
             "ERC3664Generic: must have attach role to attach"
         );
 
-        super.batchAttach(tokenId, attrIds, amounts, texts);
+        super.batchAttach(tokenId, attrIds, amounts);
     }
 
     /**

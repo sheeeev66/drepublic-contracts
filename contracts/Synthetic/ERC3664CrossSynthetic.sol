@@ -2,36 +2,20 @@
 
 pragma solidity ^0.8.0;
 
-import "../ERC3664.sol";
+import "../ERC3664/extensions/ERC3664TextBased.sol";
 
 /**
- * @dev Implementation of the {ERC3664Synthetic} interface.
+ * @dev Implementation of the {ERC3664CrossSynthetic} interface.
  */
-contract ERC3664Synthetic is ERC3664 {
+abstract contract ERC3664CrossSynthetic is ERC3664TextBased {
     struct SynthesizedToken {
+        address token;
         address owner;
         uint256 id;
     }
 
     // mainToken => SynthesizedToken
     mapping(uint256 => SynthesizedToken[]) public synthesizedTokens;
-
-    // subToken => mainToken
-    mapping(uint256 => uint256) public subTokens;
-
-    // Mapping from token ID to approved another token.
-    mapping(uint256 => uint256) private _combineApprovals;
-
-    constructor() ERC3664() {}
-
-    function recordSynthesized(
-        address owner,
-        uint256 tokenId,
-        uint256 subId
-    ) public {
-        synthesizedTokens[tokenId].push(SynthesizedToken(owner, subId));
-        subTokens[subId] = tokenId;
-    }
 
     function getSynthesizedTokens(uint256 tokenId)
         public
@@ -42,11 +26,21 @@ contract ERC3664Synthetic is ERC3664 {
     }
 
     function tokenAttributes(uint256 tokenId)
-        internal
+        public
         view
         returns (string memory)
     {
         bytes memory data = "";
+        uint256 id = primaryAttributeOf(tokenId);
+        if (id > 0) {
+            data = abi.encodePacked(
+                '{"trait_type":"',
+                symbol(id),
+                '","value":"',
+                textOf(tokenId, id),
+                '"}'
+            );
+        }
         uint256[] memory attrs = attributesOf(tokenId);
         for (uint256 i = 0; i < attrs.length; i++) {
             if (data.length > 0) {
@@ -67,12 +61,12 @@ contract ERC3664Synthetic is ERC3664 {
     }
 
     function getSubAttributes(uint256 tokenId)
-        internal
+        public
         view
         returns (bytes memory)
     {
         bytes memory data = "";
-        SynthesizedToken[] memory sTokens = synthesizedTokens[tokenId];
+        SynthesizedToken[] storage sTokens = synthesizedTokens[tokenId];
         for (uint256 i = 0; i < sTokens.length; i++) {
             if (data.length > 0) {
                 data = abi.encodePacked(data, ",");

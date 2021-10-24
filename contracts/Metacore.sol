@@ -7,7 +7,7 @@ import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/utils/Strings.sol";
 import "openzeppelin-solidity/contracts/utils/Address.sol";
-import "./ERC3664/extensions/ERC3664CrossSynthetic.sol";
+import "./Synthetic/ERC3664CrossSynthetic.sol";
 import "./Synthetic/ISynthetic721.sol";
 import "./utils/Base64.sol";
 
@@ -45,7 +45,7 @@ contract Metacore is
 
     mapping(address => bool) private _authNFTs;
 
-    constructor() ERC3664CrossSynthetic() ERC721("Metacore", "MTC") Ownable() {
+    constructor() ERC3664("") ERC721("Metacore", "MTC") Ownable() {
         _authNFTs[address(0x10949E6d7949C68E6F00B7d907131bE78170bd3F)] = true;
         _mint(METANAME, "Metaname", "Metaname", "");
     }
@@ -83,7 +83,8 @@ contract Metacore is
 
         _curTokenId += 1;
         _safeMint(_msgSender(), _curTokenId);
-        attach(_curTokenId, METANAME, 1, bytes(name), true);
+        attachWithText(_curTokenId, METANAME, 1, bytes(name));
+        setPrimaryAttribute(_curTokenId, METANAME);
     }
 
     function combine(

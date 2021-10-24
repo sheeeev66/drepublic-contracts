@@ -7,7 +7,7 @@ import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/utils/Address.sol";
 import "./Synthetic/ISynthetic.sol";
-import "./ERC3664/ERC3664.sol";
+import "./ERC3664/extensions/ERC3664TextBased.sol";
 import "./utils/Base64.sol";
 
 interface ILoot {
@@ -53,7 +53,7 @@ interface ILootData {
 }
 
 contract Legoot is
-    ERC3664,
+    ERC3664TextBased,
     ISynthetic,
     ERC721Enumerable,
     ReentrancyGuard,
@@ -92,7 +92,7 @@ contract Legoot is
 
     event Claimed(address indexed payee, uint256 weiAmount, uint256 tokenId);
 
-    constructor() ERC721("Legoot", "LEGO") Ownable() {
+    constructor() ERC3664("") ERC721("Legoot", "LEGO") {
         _mint(LEGOOT_NFT, "LEGOOT", "legoot", "");
         _mint(WEAPON_NFT, "WEAPON", "weapon", "");
         _mint(CHEST_NFT, "CHEST", "chest", "");
@@ -627,7 +627,8 @@ contract Legoot is
     }
 
     function _afterTokenMint(uint256 tokenId) internal virtual {
-        attach(tokenId, LEGOOT_NFT, 1, bytes("legoot"), true);
+        attachWithText(tokenId, LEGOOT_NFT, 1, bytes("legoot"));
+        setPrimaryAttribute(tokenId, LEGOOT_NFT);
         uint256 id = _totalSupply + (tokenId - 1) * 8 + 1;
         // WEAPON
         mintSubToken(WEAPON_NFT, tokenId, id);
@@ -653,7 +654,8 @@ contract Legoot is
         uint256 subId
     ) internal virtual {
         _mint(address(this), subId);
-        attach(subId, attr, 1, bytes(""), true);
+        attachWithText(subId, attr, 1, bytes(""));
+        setPrimaryAttribute(subId, attr);
         synthesizedTokens[tokenId].push(SynthesizedToken(_msgSender(), subId));
     }
 
