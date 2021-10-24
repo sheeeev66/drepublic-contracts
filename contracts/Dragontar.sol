@@ -69,7 +69,7 @@ contract Dragontar is
     using Strings for uint256;
 
     address public constant DragontarData =
-        0xE98C358718d9D7916371a824C04d5eC5db5aBf6e;
+        0xD35C5B2a67D94E4b8D040975d7A4Cdc73e725Ef2;
 
     uint256 private _curTokenId;
 
@@ -99,8 +99,8 @@ contract Dragontar is
             super.supportsInterface(interfaceId);
     }
 
-    function getNextTokenID() public view returns (uint256) {
-        return _curTokenId + 1;
+    function getCurrentTokenID() public view returns (uint256) {
+        return _curTokenId;
     }
 
     function claim() external nonReentrant {
