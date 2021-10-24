@@ -69,7 +69,7 @@ contract Dragontar is
     using Strings for uint256;
 
     address public constant DragontarData =
-        0xD35C5B2a67D94E4b8D040975d7A4Cdc73e725Ef2;
+        0xECa6fEd337f07c6f29Dd652709940C0347CA5E48;
 
     uint256 private _curTokenId;
 

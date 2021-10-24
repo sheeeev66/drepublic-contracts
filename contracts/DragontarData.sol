@@ -301,6 +301,9 @@ contract DragontarData {
         uint8 idx = 0;
         for (uint256 i = 0; i < rareArray.length; i++) {
             if (place < rareArray[i].randV) {
+                if (0 == rareArray[i].num) {
+                    return ("000", 0);
+                }
                 uint256 n = rand % rareArray[i].num;
                 id = sourceArray[idx + n];
                 score = rareArray[i].score;
