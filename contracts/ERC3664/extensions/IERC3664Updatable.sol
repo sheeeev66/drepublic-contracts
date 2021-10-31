@@ -9,11 +9,6 @@ import "./IERC3664Metadata.sol";
  */
 interface IERC3664Updatable is IERC3664Metadata {
     /**
-     * @dev Remove attribute type `attrId` from `tokenId`.
-     */
-    function remove(uint256 tokenId, uint256 attrId) external;
-
-    /**
      * @dev Increases `amount` value of attribute type `attrId` to `tokenId`.
      */
     function increase(

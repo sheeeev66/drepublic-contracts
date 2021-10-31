@@ -3,6 +3,7 @@ const fs = require('fs');
 const Web3 = require('web3');
 const dragontarABI = require('../build/contracts/Dragontar.json');
 const dragontarDataABI = require('../build/contracts/DragontarData.json');
+const dragontarAttrABI = require('../build/contracts/ERC721AutoId.json');
 
 const mnemonic = fs.readFileSync('.secret').toString().trim();
 const bscLiveNetwork = 'https://bsc-dataseed1.binance.org/';
@@ -10,8 +11,9 @@ const bscTestNetwork = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
 const caller = '0xA5225cBEE5052100Ec2D2D94aA6d258558073757';
 
 // bsctest
-const dragontarAddress = '0x2D9a8180367dA4d45fa91A2FEFE7BFb95af74Cf5';
+const dragontarAddress = '0x9D72dD89BD96f3b88F1C1318c3760EE1C2212D16';
 const dragontarDataAddress = '0xECa6fEd337f07c6f29Dd652709940C0347CA5E48';
+const dragontarAttrAddress = '0xb13070fd2cb5162cacd2De05C1a2C144290D8a5A';
 
 const provider = new HDWalletProvider(mnemonic, bscTestNetwork);
 const web3 = new Web3(provider);
@@ -27,6 +29,13 @@ const dragontarDataInstance = new web3.eth.Contract(
   dragontarDataAddress,
   { gasLimit: '5500000' },
 );
+
+const dragontarAttrInstance = new web3.eth.Contract(
+  dragontarAttrABI.abi,
+  dragontarAttrAddress,
+  { gasLimit: '5500000' },
+);
+const MINTER_ROLE = Web3.utils.soliditySha3('MINTER_ROLE');
 
 async function main () {
   // for (let i = 0; i < 1000; i++) {
@@ -47,6 +56,20 @@ async function main () {
 
   console.log('dragontar tokenURI: ',
     await dragontarInstance.methods.tokenURI(tokenId).call());
+
+  console.log('grant dragontar mint attrNFT role: ',
+    await dragontarAttrInstance.methods.grantRole(MINTER_ROLE, dragontarAddress).send({ from: caller }));
+
+  console.log('separate dragontar: ',
+    await dragontarInstance.methods.separateOne(1, 3).send({ from: caller }));
+
+  const attrTokenId = await dragontarInstance.methods.getAttrTokenId(dragontarAddress, 1, 3).call();
+  console.log('dragontar attrTokenId: ', attrTokenId);
+
+  console.log('dragontar attrTokenId owner: ', await dragontarAttrInstance.methods.ownerOf(attrTokenId).call());
+
+  console.log('combine dragontar: ',
+    await dragontarInstance.methods.combine(1, attrTokenId, 3).send({ from: caller }));
 }
 
 async function dragontar (tokenId) {

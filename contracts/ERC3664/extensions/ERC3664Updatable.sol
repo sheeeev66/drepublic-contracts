@@ -7,36 +7,6 @@ import "./IERC3664Updatable.sol";
 
 abstract contract ERC3664Updatable is ERC3664, IERC3664Updatable {
     /**
-     * @dev See {IERC3664Updatable-remove}.
-     */
-    function remove(uint256 tokenId, uint256 attrId) public virtual override {
-        require(
-            _attrExists(attrId),
-            "ERC3664Updatable: remove for nonexistent attribute"
-        );
-        uint256 amount = attrBalances[attrId][tokenId];
-        require(
-            amount > 0,
-            "ERC3664Updatable: token has not attached the attribute"
-        );
-
-        address operator = _msgSender();
-        _beforeAttrTransfer(
-            operator,
-            tokenId,
-            0,
-            _asSingletonArray(attrId),
-            _asSingletonArray(amount),
-            ""
-        );
-
-        delete attrBalances[attrId][tokenId];
-        _removeByValue(attrs[tokenId], attrId);
-
-        emit TransferSingle(operator, tokenId, 0, attrId, amount);
-    }
-
-    /**
      * @dev See {IERC3664Updatable-increase}.
      */
     function increase(

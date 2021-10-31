@@ -321,6 +321,33 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
     }
 
     /**
+     * @dev Remove attribute type `attrId` from `tokenId`.
+     */
+    function _remove(uint256 tokenId, uint256 attrId) internal virtual {
+        require(
+            _attrExists(attrId),
+            "ERC3664: remove for nonexistent attribute"
+        );
+        uint256 amount = attrBalances[attrId][tokenId];
+        require(amount > 0, "ERC3664: token has not attached the attribute");
+
+        address operator = _msgSender();
+        _beforeAttrTransfer(
+            operator,
+            tokenId,
+            0,
+            _asSingletonArray(attrId),
+            _asSingletonArray(amount),
+            ""
+        );
+
+        delete attrBalances[attrId][tokenId];
+        _removeByValue(attrs[tokenId], attrId);
+
+        emit TransferSingle(operator, tokenId, 0, attrId, amount);
+    }
+
+    /**
      * @dev Destroys `amount` values of attribute type `attrId` from `tokenId`
      */
     function _burn(
