@@ -6,9 +6,9 @@ import "openzeppelin-solidity/contracts/token/ERC721/extensions/ERC721Enumerable
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/utils/Address.sol";
-import "./Synthetic/ISynthetic.sol";
-import "./ERC3664/extensions/ERC3664TextBased.sol";
-import "./utils/Base64.sol";
+import "../Synthetic/ISynthetic.sol";
+import "../ERC3664/extensions/ERC3664TextBased.sol";
+import "../utils/Base64.sol";
 
 interface ILoot {
     function getWeapon(uint256 tokenId) external view returns (string memory);

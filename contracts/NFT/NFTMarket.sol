@@ -5,7 +5,7 @@ import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/utils/Address.sol";
 import "openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
-import "./ERC1155/ERC1155Tradable.sol";
+import "../ERC1155/ERC1155Tradable.sol";
 
 contract NFTMarket is Ownable, ReentrancyGuard {
     using Address for address;

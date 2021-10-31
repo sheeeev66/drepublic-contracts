@@ -7,9 +7,9 @@ import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/utils/Strings.sol";
 import "openzeppelin-solidity/contracts/utils/Address.sol";
-import "./Synthetic/ERC3664CrossSynthetic.sol";
-import "./Synthetic/ISynthetic721.sol";
-import "./utils/Base64.sol";
+import "../Synthetic/ERC3664CrossSynthetic.sol";
+import "../Synthetic/ISynthetic721.sol";
+import "../utils/Base64.sol";
 
 interface ICustomMetadata {
     function tokenURI(uint256 tokenId) external view returns (string memory);

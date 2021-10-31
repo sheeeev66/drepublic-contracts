@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "./ERC3664/extensions/ERC3664TextBased.sol";
-import "./ERC3664/extensions/ERC3664Transferable.sol";
-import "./utils/Base64.sol";
+import "../ERC3664/extensions/ERC3664TextBased.sol";
+import "../ERC3664/extensions/ERC3664Transferable.sol";
+import "../utils/Base64.sol";
 
 interface IDragontarData {
     function getBackground(uint256 tokenId)
