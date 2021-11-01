@@ -11,9 +11,9 @@ const bscTestNetwork = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
 const caller = '0xA5225cBEE5052100Ec2D2D94aA6d258558073757';
 
 // bsctest
-const dragontarAddress = '0x9D72dD89BD96f3b88F1C1318c3760EE1C2212D16';
+const dragontarAddress = '0xCE1c417b1Aa0907Da12E35359b3AC54866f5cA7B';
 const dragontarDataAddress = '0xECa6fEd337f07c6f29Dd652709940C0347CA5E48';
-const dragontarAttrAddress = '0xb13070fd2cb5162cacd2De05C1a2C144290D8a5A';
+const dragontarAttrAddress = '0xD2968aC8F9AB0284D1b751fd95ef64115189ba14';
 
 const provider = new HDWalletProvider(mnemonic, bscTestNetwork);
 const web3 = new Web3(provider);
@@ -47,6 +47,7 @@ async function main () {
 
   const tokenId = await dragontarInstance.methods.getCurrentTokenID().call();
   console.log('dragontar tokenId: ', tokenId);
+  const attrId = 3;
 
   console.log('dragontar fullId: ',
     await dragontarInstance.methods.fullIdOf(tokenId).call());
@@ -61,15 +62,18 @@ async function main () {
     await dragontarAttrInstance.methods.grantRole(MINTER_ROLE, dragontarAddress).send({ from: caller }));
 
   console.log('separate dragontar: ',
-    await dragontarInstance.methods.separateOne(1, 3).send({ from: caller }));
+    await dragontarInstance.methods.separateOne(tokenId, attrId).send({ from: caller }));
 
-  const attrTokenId = await dragontarInstance.methods.getAttrTokenId(dragontarAddress, 1, 3).call();
+  const attrTokenId = await dragontarInstance.methods.getAttrTokenId(dragontarAddress, tokenId, attrId).call();
   console.log('dragontar attrTokenId: ', attrTokenId);
 
   console.log('dragontar attrTokenId owner: ', await dragontarAttrInstance.methods.ownerOf(attrTokenId).call());
 
+  console.log('approve nft to dragontar: ',
+    await dragontarAttrInstance.methods.setApprovalForAll(dragontarAddress, true).send({ from: caller }));
+
   console.log('combine dragontar: ',
-    await dragontarInstance.methods.combine(1, attrTokenId, 3).send({ from: caller }));
+    await dragontarInstance.methods.combine(tokenId, attrTokenId, attrId).send({ from: caller }));
 }
 
 async function dragontar (tokenId) {

@@ -37,8 +37,8 @@ abstract contract ERC3664Transferable is ERC3664, IERC3664Transferable {
         );
         require(to != 0, "ERC3664Transferable: approve to the zero address");
         require(
-            !_hasAttr(to, attrId),
-            "ERC3664Transferable: recipient token has already attached the attribute"
+            _hasAttr(from, attrId),
+            "ERC3664Transferable: sender not attached the attribute"
         );
 
         _allowances[attrId][from] = to;
@@ -58,6 +58,14 @@ abstract contract ERC3664Transferable is ERC3664, IERC3664Transferable {
             isApproved(from, to, attrId),
             "ERC3664Transferable: nft holder not approve the attribute to recipient"
         );
+        _transfer(from, to, attrId);
+    }
+
+    function _transfer(
+        uint256 from,
+        uint256 to,
+        uint256 attrId
+    ) internal virtual {
         require(
             !_hasAttr(to, attrId),
             "ERC3664Transferable: recipient has attached the attribute"

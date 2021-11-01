@@ -74,7 +74,7 @@ contract Dragontar is
         0xECa6fEd337f07c6f29Dd652709940C0347CA5E48;
 
     address private constant DragontarAttr =
-        0xb13070fd2cb5162cacd2De05C1a2C144290D8a5A;
+        0xD2968aC8F9AB0284D1b751fd95ef64115189ba14;
 
     uint256 private _curTokenId;
 
@@ -193,15 +193,6 @@ contract Dragontar is
         }
     }
 
-    function isApproved(
-        uint256 from,
-        uint256 to,
-        uint256 attrId
-    ) public view virtual override returns (bool) {
-        return
-            super.isApproved(from, to, attrId) || ownerOf(from) == _msgSender();
-    }
-
     function separateOne(uint256 tokenId, uint256 attrId) public {
         require(
             splittableAttrs[attrId],
@@ -211,8 +202,13 @@ contract Dragontar is
             _hasAttr(tokenId, attrId),
             "Dragontar: token has not attached the attribute"
         );
+        require(
+            ERC721.ownerOf(tokenId) == _msgSender(),
+            "Dragontar: caller is not token owner"
+        );
+
         uint256 attrTokenId = getAttrTokenId(address(this), tokenId, attrId);
-        super.transferFrom(tokenId, attrTokenId, attrId);
+        _transfer(tokenId, attrTokenId, attrId);
 
         ERC721AutoId attrNFT = ERC721AutoId(DragontarAttr);
         if (attrNFT.exists(attrTokenId)) {
@@ -236,7 +232,7 @@ contract Dragontar is
             "Dragontar: the attribute cannot be combine"
         );
         require(
-            ownerOf(tokenId) == _msgSender(),
+            ERC721.ownerOf(tokenId) == _msgSender(),
             "Dragontar: caller is not token owner"
         );
         ERC721AutoId attrNFT = ERC721AutoId(DragontarAttr);
@@ -253,7 +249,7 @@ contract Dragontar is
             "Dragontar: token already attached the attribute"
         );
 
-        super.transferFrom(attrTokenId, tokenId, attrId);
+        _transfer(attrTokenId, tokenId, attrId);
 
         attrNFT.transferFrom(_msgSender(), address(this), attrTokenId);
     }
@@ -264,5 +260,18 @@ contract Dragontar is
         uint256 attrId
     ) public pure returns (uint256) {
         return uint256(keccak256(abi.encode(nftAddress, tokenId, attrId)));
+    }
+
+    function approve(
+        uint256 from,
+        uint256 to,
+        uint256 attrId
+    ) public virtual override {
+        require(
+            ERC721.ownerOf(from) == _msgSender(),
+            "Dragontar: caller is not token owner"
+        );
+
+        ERC3664Transferable.approve(from, to, attrId);
     }
 }
