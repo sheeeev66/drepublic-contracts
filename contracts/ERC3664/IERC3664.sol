@@ -85,22 +85,4 @@ interface IERC3664 is IERC165 {
      * @dev Set primary attribute type of owned by `tokenId`.
      */
     function setPrimaryAttribute(uint256 tokenId, uint256 attrId) external;
-
-    /**
-     * @dev Attaches `amount` value of attribute type `attrId` to `tokenId`.
-     */
-    function _attach(
-        uint256 tokenId,
-        uint256 attrId,
-        uint256 amount
-    ) internal;
-
-    /**
-     * @dev [Batched] version of {attach}.
-     */
-    function _batchAttach(
-        uint256 tokenId,
-        uint256[] calldata attrIds,
-        uint256[] calldata amounts
-    ) internal;
 }
