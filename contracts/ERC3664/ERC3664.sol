@@ -155,8 +155,8 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
     /**
      * @dev See {IERC3664-setPrimaryAttribute}.
      */
-    function setPrimaryAttribute(uint256 tokenId, uint256 attrId)
-        public
+    function _setPrimaryAttribute(uint256 tokenId, uint256 attrId)
+        internal
         virtual
         override
     {
@@ -216,11 +216,11 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
     /**
      * @dev See {IERC3664-attach}.
      */
-    function attach(
+    function _attach(
         uint256 tokenId,
         uint256 attrId,
         uint256 amount
-    ) public virtual override {
+    ) internal virtual override {
         require(
             _attrExists(attrId),
             "ERC3664: attach for nonexistent attribute"
@@ -249,11 +249,11 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
     /**
      * @dev See {IERC3664-batchAttach}.
      */
-    function batchAttach(
+    function _batchAttach(
         uint256 tokenId,
         uint256[] calldata attrIds,
         uint256[] calldata amounts
-    ) public virtual override {
+    ) internal virtual override {
         address operator = _msgSender();
 
         _beforeAttrTransfer(operator, 0, tokenId, attrIds, amounts, "");
