@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "openzeppelin-solidity/contracts/security/ReentrancyGuard.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/IERC721.sol";
 import "openzeppelin-solidity/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "../ERC3664/extensions/ERC3664TextBased.sol";
 import "../ERC3664/extensions/ERC3664Transferable.sol";
 import "../ERC721/ERC721AutoId.sol";
@@ -66,15 +67,18 @@ contract Dragontar is
     ERC3664TextBased,
     ERC3664Transferable,
     ERC721Enumerable,
-    ReentrancyGuard
+    ReentrancyGuard,
+    Ownable
 {
     using Strings for uint256;
 
     address private constant DragontarData =
-        0xECa6fEd337f07c6f29Dd652709940C0347CA5E48;
+        0x4B2Bb4b24221EaCe19F79E2aD5242218864d3f00;
 
     address private constant DragontarAttr =
-        0xD2968aC8F9AB0284D1b751fd95ef64115189ba14;
+        0xBFe36Fc35f1cB3781850F8C16B67e49A1F568826;
+
+    string private _uri;
 
     uint256 private _curTokenId;
 
@@ -82,6 +86,8 @@ contract Dragontar is
     mapping(uint256 => bool) public splittableAttrs;
 
     constructor() ERC3664("") ERC721("DRepublic Dragontar", "Dragontar") {
+        _uri = "http://www.cradles.io/dragontar/";
+
         splittableAttrs[3] = true;
         splittableAttrs[4] = true;
         splittableAttrs[6] = true;
@@ -98,6 +104,10 @@ contract Dragontar is
         _mint(8, "", "decorate", "");
         _mint(9, "", "hat", "");
         _mint(10, "", "tooth", "");
+    }
+
+    function setURI(string memory _newURI) external onlyOwner {
+        _uri = _newURI;
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -159,7 +169,10 @@ contract Dragontar is
                     abi.encodePacked(
                         '{"name": "Dragontar #',
                         tokenId.toString(),
-                        '", "description": "DRepublic dragon avatar", "attributes":[',
+                        '", "description": "DRepublic dragon avatar", "images": "',
+                        _uri,
+                        fullIdOf(tokenId),
+                        '", "attributes":[',
                         printAttributes(tokenId),
                         "]}"
                     )

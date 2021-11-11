@@ -8,14 +8,17 @@ const dragontarAttrABI = require('../build/contracts/ERC721AutoId.json');
 const mnemonic = fs.readFileSync('.secret').toString().trim();
 const bscLiveNetwork = 'https://bsc-dataseed1.binance.org/';
 const bscTestNetwork = 'https://data-seed-prebsc-1-s1.binance.org:8545/';
+
+const INFURA_API_KEY = process.env.INFURA_API_KEY;
+const mubaiNetwork = `https://polygon-mumbai.infura.io/v3/${INFURA_API_KEY}`;
 const caller = '0xA5225cBEE5052100Ec2D2D94aA6d258558073757';
 
 // bsctest
-const dragontarAddress = '0xCE1c417b1Aa0907Da12E35359b3AC54866f5cA7B';
-const dragontarDataAddress = '0xECa6fEd337f07c6f29Dd652709940C0347CA5E48';
-const dragontarAttrAddress = '0xD2968aC8F9AB0284D1b751fd95ef64115189ba14';
+const dragontarAddress = '0x448B562AC0A5cb7E6D6E360E5f9EEf9B57a9c608';
+const dragontarDataAddress = '0x4B2Bb4b24221EaCe19F79E2aD5242218864d3f00';
+const dragontarAttrAddress = '0xBFe36Fc35f1cB3781850F8C16B67e49A1F568826';
 
-const provider = new HDWalletProvider(mnemonic, bscTestNetwork);
+const provider = new HDWalletProvider(mnemonic, mubaiNetwork);
 const web3 = new Web3(provider);
 
 const dragontarInstance = new web3.eth.Contract(
