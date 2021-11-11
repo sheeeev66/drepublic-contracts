@@ -89,18 +89,18 @@ interface IERC3664 is IERC165 {
     /**
      * @dev Attaches `amount` value of attribute type `attrId` to `tokenId`.
      */
-    function attach(
+    function _attach(
         uint256 tokenId,
         uint256 attrId,
         uint256 amount
-    ) external;
+    ) internal;
 
     /**
      * @dev [Batched] version of {attach}.
      */
-    function batchAttach(
+    function _batchAttach(
         uint256 tokenId,
         uint256[] calldata attrIds,
         uint256[] calldata amounts
-    ) external;
+    ) internal;
 }
