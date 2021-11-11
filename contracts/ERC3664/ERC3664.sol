@@ -220,7 +220,7 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
         uint256 tokenId,
         uint256 attrId,
         uint256 amount
-    ) internal virtual override {
+    ) internal virtual {
         require(
             _attrExists(attrId),
             "ERC3664: attach for nonexistent attribute"
@@ -253,7 +253,7 @@ contract ERC3664 is Context, ERC165, IERC3664, IERC3664Metadata {
         uint256 tokenId,
         uint256[] calldata attrIds,
         uint256[] calldata amounts
-    ) internal virtual override {
+    ) internal virtual {
         address operator = _msgSender();
 
         _beforeAttrTransfer(operator, 0, tokenId, attrIds, amounts, "");
